@@ -17,6 +17,7 @@ lib64/
 parts/
 sdist/
 var/
+enron_mail*/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -51,3 +52,4 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+enron_mail_20110402.tgz
