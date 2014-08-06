@@ -5,7 +5,7 @@
 import email
 import os
 import argparse
-import mysqldb as db
+import MySQLdb as db
 
 
 def main():
@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser("Create database from email files")
     parser.add_argument("startdir", type = str, help='Starting place for directory tree')
 
-    args = vars(parser.parser_args())
+    args = vars(parser.parse_args())
 
     #start directory is unique for each person
 
