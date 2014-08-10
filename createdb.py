@@ -37,13 +37,13 @@ def createDB():
         "CREATE TABLE `emails` (\
           `id` INT NOT NULL AUTO_INCREMENT,\
           `sender` varchar(100) NOT NULL,\
-          `to` varchar(2000) NOT NULL,\
-          `subject` varchar(200), \
+          `to` text(5000) NOT NULL,\
+          `subject` varchar(500), \
           `date` datetime NOT NULL,\
-          `cc` varchar(2000),\
-          `bcc` varchar(2000),\
-          `rawtext` text(20000) NOT NULL,\
-          `text` text(20000) NOT NULL,\
+          `cc` text(5000),\
+          `bcc` text(5000),\
+          `rawtext` text(30000) NOT NULL,\
+          `text` text(30000) NOT NULL,\
           `fileloc` varchar(500) NOT NULL,\
           PRIMARY KEY (id)\
         ) ENGINE=InnoDB;")
