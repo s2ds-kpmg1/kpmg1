@@ -3,17 +3,19 @@
 """Code to create the test_db from the Enron email data"""
 
 import email
-import os
+import os, sys
 import argparse
 import MySQLdb as mdb
 import __future__
 import re
+import pdb
+import datetime
 
 parser = argparse.ArgumentParser("Create database from email files")
 parser.add_argument("startdir", type = str, help='Starting place for directory tree')
 
 
-def create_db():
+def createDB():
 
     """Creates connection to mysql and creates the DB in standard form"""
 
@@ -31,21 +33,20 @@ def create_db():
 
     DB_NAME='enron'
     TABLES={}
-    TABLES['emails'] = (
-
-        "CREATE TABLE `emails` ("
-        "  `id` INT NOT NULL AUTO_INCREMENT,"
-        "  `from` varchar(100) NOT NULL,"
-        "  `to` varchar(1000) NOT NULL,"
-        "  `subject varchar(200),"
-        "  `date` date NOT NULL,"
-        "  `cc` varchar(1000),"
-        "  `bcc` varchar(1000),"
-        "  `rawtext` varchar(15000) NOT NULL,"
-        "  `text` varchar(15000) NOT NULL,"
-        "  `fileloc` varchar(100) NOT NULL"
-        "  PRIMARY KEY (id)"
-        ") ENGINE=InnoDB;")
+    TABLES['emails'] = (\
+        "CREATE TABLE `emails` (\
+          `id` INT NOT NULL AUTO_INCREMENT,\
+          `sender` varchar(100) NOT NULL,\
+          `to` varchar(2000) NOT NULL,\
+          `subject` varchar(200), \
+          `date` datetime NOT NULL,\
+          `cc` varchar(2000),\
+          `bcc` varchar(2000),\
+          `rawtext` text(20000) NOT NULL,\
+          `text` text(20000) NOT NULL,\
+          `fileloc` varchar(500) NOT NULL,\
+          PRIMARY KEY (id)\
+        ) ENGINE=InnoDB;")
 
     #try to create. If not raise exception and exit
 
@@ -53,40 +54,53 @@ def create_db():
 
         cursor.execute("CREATE DATABASE {0} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
 
-    except mysql.connector.Error as err:
+    except mdb.Error as err:
 
         print ("Failed creating database",format(err))
         return
 
-    #Try to crate databse
+    #Try to create table
+
+
+    #can iterate over the table names and the associated query
 
     for name,ddl in TABLES.iteritems():
+
+        #must tell it which db to use first
+
+        cursor.execute('USE `enron`;')
+
 
         try:
 
             print ("Creating table {0}: \n".format(name))
-            cur.execute(ddl)
+            cursor.execute(ddl)
 
-        except mysql.connector.Error as err:
+        except mdb.Error, err:
 
-            if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
+            if int(str(err).split()[0][1:5]) == 1050:
 
                 print ("Table {0} already exists".format(name))
             else:
-                print (err.msg)
+                print (err)
 
 
     if connection:
-        conection.close()
+        connection.close()
 
     #Close the empty database if it is created correctly
 
     return
 
 
-def deleteDB(cur, tablename):
+def deleteTable(cur, tablename):
 
     cur.execute("""DROP TABLE IF EXISTS {0}""".format(tablename))
+    return
+
+def deleteDB(cur, dbname):
+
+    cur.execute("""DROP DATABASE IF EXISTS {0}""".format(dbname))
     return
 
 def connectDB(db):
@@ -97,25 +111,137 @@ def connectDB(db):
     return (connection,cursor)
 
 
+def formatDate(datestring):
 
-def addDBEntry(cur, tablename, email, filepath):
+    #this is probably specific to this email system I don't know
+
+    datestring = datestring.split()
+
+    #got a weird error where the year in the email is listed as 0001 so add 1900
+    #to enable python to deal with it.
+
+    if (int(datestring[3]) < 1900): datestring[3] = str(int(datestring[3])+1900)
+    rearrange = '{0} {1} {2} {3}'.format(datestring[1], datestring[2].upper(), datestring[3], datestring[4])
+    
+    
+
+    dateobj = datetime.datetime.strptime(rearrange, '%d %b %Y %H:%M:%S')
+
+    formatdate = datetime.datetime.strftime(dateobj, '%Y-%m-%d %H:%M:%S')
+    return formatdate
+
+
+def addDBEntry(connect,cur, tablename, email, filepath):
+
+
+    print '**************************'
+    print filepath
 
     sender = email['From']
     to = email['To']
+
+    if (to != None): 
+
+        to = re.sub('"', '', to)
+        to = re.sub("(E-mail)", "", to)
+        to = re.sub('<', '', to)
+        to = re.sub('>', '', to)
+
+    else:
+        to = 'unknown'
+
+
     cc = email['X-cc']
+
+    if (cc != None):
+        cc = re.sub('"', '', cc)
+        cc = re.sub('(E-mail)', '', cc)
+        cc = re.sub('<', '', cc)
+        cc = re.sub('>', '', cc)
+
+    else:
+        cc = ''
+
+
+
     bcc=email['X-bcc']
+    
+    if (bcc != None):
+        bcc = re.sub('"', '', bcc)
+        bcc = re.sub('(E-mail)', '', bcc)
+        bcc = re.sub('<', '', bcc)
+        bcc = re.sub('>', '', bcc)
+
+    else:
+        bcc = ''
+
     subject=email['Subject']
+    subject = re.sub('"', '', subject)
+
     date = email['Date']
+  
+    formated_date = formatDate(date)
+
     localfile = filepath
     rawtext = email.get_payload()
+
+    #convert any " to '
+
+    rawtext = re.sub(r'"', "'", rawtext)
+    #escape any apostrophes, 
+
+    rawtext = re.sub(r"'", "\'", rawtext)
+
+
+
     cleantext = cleanMessage(rawtext)
 
+    #now create the syntax to add an entry to the db
+
+    query = """INSERT INTO {0} (`sender`, `to`, `date`,`subject`,  `cc`, `bcc`, \
+        `rawtext`, `text`, `fileloc`) VALUES ("{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", \
+        "{8}","{9}");""".format(tablename, sender, to, formated_date, subject, cc, bcc,\
+         rawtext,cleantext,filepath)
+
+    #print query
+
+    logfile = open('logfile', 'a')
+
+    try:
+
+        cur.execute(query)
+        connect.commit()
+
+        print 'Added file: {0}'.format(filepath)
+
+    except mdb.Error, err:
+
+        print err
+        logfile.write("Error {0} File {1}\n".format(err, filepath))
+        return
+
+
+    #just run some if loops to check length of fields to check the fields are setup correctly
+    #we can delete this later
+
+
+
+    if len(rawtext)>19900: logfile.write('Raw text too long {0}: {1}\n'.format(len(rawtext),filepath))
+    if len(cleantext)>19900: logfile.write('Clean text too long {0}: {1}\n'.format(len(cleantext),filepath))
+    if len(to)>1000: logfile.write('To too long {0}: {1}\n'.format(len(to), filepath))
+    if len(sender)>100: logfile.write('From too long {0}: {1}\n'.format(len(sender), filepath))
+    if len(cc)>1000: logfile.write('CC too long {0}: {1}\n'.format(len(cc), filepath))
+    if len(bcc)>1000: logfile.write('BCC too long {0}: {1}\n'.format(len(bcc), filepath))
+    if len(subject)>200: logfile.write('Subject too long {0}: {1}\n'.format(len(subject),filepath))
+
+    logfile.close()
+    return
 
 def cleanMessage(message):
 
     #remove \n
 
-    clean1 = re.sub(r'\n', '', message)
+    clean1 = re.sub(r'\n', ' ', message)
 
     #remove - which repeat >=3 times
 
@@ -133,9 +259,13 @@ def cleanMessage(message):
     #match.start is the index of the first occurance of the search string. Want the 
     #message from the beginning to that point
 
-    clean3 = clean2[:match.start()]
+    if (match==None):
+        return clean2
+    else:
 
-    return clean3
+        clean3 = clean2[:match.start()]
+
+        return clean3
 
 
 
@@ -143,11 +273,13 @@ def cleanMessage(message):
 
 def main():
  
+    args = parser.parse_args()
 
     #First thing: create the DB
 
     createDB()
     connection, cursor = connectDB('enron')
+
 
 
 
@@ -171,8 +303,9 @@ def main():
             msg = email.message_from_file(efile)
         
 
-        addDBEntry(cursor, 'emails', msg, message)
+        addDBEntry(connection,cursor, 'emails', msg, message)
 
+    connection.close()
 
 
 
