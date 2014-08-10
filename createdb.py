@@ -7,9 +7,10 @@ import os
 import argparse
 import MySQLdb as mdb
 import __future__
+import re
 
 parser = argparse.ArgumentParser("Create database from email files")
-parser.add_argument("startdir", type = str, help='Starting place for directory tree', dest='startdir')
+parser.add_argument("startdir", type = str, help='Starting place for directory tree')
 
 
 def create_db():
@@ -59,7 +60,7 @@ def create_db():
 
     #Try to crate databse
 
-    for name,ddl in TABLES.iteritems()
+    for name,ddl in TABLES.iteritems():
 
         try:
 
@@ -99,7 +100,7 @@ def connectDB(db):
 
 def addDBEntry(cur, tablename, email, filepath):
 
-    from = email['From']
+    sender = email['From']
     to = email['To']
     cc = email['X-cc']
     bcc=email['X-bcc']
@@ -110,13 +111,33 @@ def addDBEntry(cur, tablename, email, filepath):
     cleantext = cleanMessage(rawtext)
 
 
-def cleantext(message):
+def cleanMessage(message):
 
     #remove \n
 
-    message = re.sub(r'\n', '', message)
+    clean1 = re.sub(r'\n', '', message)
 
-    #remove
+    #remove - which repeat >=3 times
+
+    clean2 = re.sub(r'-{3,}', '', clean1)
+
+    #remove leading/trailing whitespace
+
+    clean2 = clean2.strip()
+
+    #locate multiple email chains and cut on first occurance of Original Message
+    #this creates a match object
+
+    match = re.search(r'Original Message', clean2)
+
+    #match.start is the index of the first occurance of the search string. Want the 
+    #message from the beginning to that point
+
+    clean3 = clean2[:match.start()]
+
+    return clean3
+
+
 
 
 
@@ -150,11 +171,8 @@ def main():
             msg = email.message_from_file(efile)
         
 
-        addDBEntry(curson, 'emails', msg, message)
+        addDBEntry(cursor, 'emails', msg, message)
 
-    #TODO: create database to read data into before this
-    #TODO: combine list of strings in msg_text into 1 long string. Easy enough with .join()
-    #TODO: tidy this up 
 
 
 
