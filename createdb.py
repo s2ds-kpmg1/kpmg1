@@ -37,13 +37,13 @@ def createDB():
         "CREATE TABLE `emails` (\
           `id` INT NOT NULL AUTO_INCREMENT,\
           `sender` varchar(100) NOT NULL,\
-          `to` text(5000) NOT NULL,\
+          `to` text(10000) NOT NULL,\
           `subject` varchar(500), \
           `date` datetime NOT NULL,\
-          `cc` text(5000),\
-          `bcc` text(5000),\
-          `rawtext` text(30000) NOT NULL,\
-          `text` text(30000) NOT NULL,\
+          `cc` text(10000),\
+          `bcc` text(10000),\
+          `rawtext` text(50000) NOT NULL,\
+          `text` text(50000) NOT NULL,\
           `fileloc` varchar(500) NOT NULL,\
           PRIMARY KEY (id)\
         ) ENGINE=InnoDB;")
@@ -218,21 +218,10 @@ def addDBEntry(connect,cur, tablename, email, filepath):
 
         print err
         logfile.write("Error {0} File {1}\n".format(err, filepath))
-        return
 
 
     #just run some if loops to check length of fields to check the fields are setup correctly
     #we can delete this later
-
-
-
-    if len(rawtext)>19900: logfile.write('Raw text too long {0}: {1}\n'.format(len(rawtext),filepath))
-    if len(cleantext)>19900: logfile.write('Clean text too long {0}: {1}\n'.format(len(cleantext),filepath))
-    if len(to)>1000: logfile.write('To too long {0}: {1}\n'.format(len(to), filepath))
-    if len(sender)>100: logfile.write('From too long {0}: {1}\n'.format(len(sender), filepath))
-    if len(cc)>1000: logfile.write('CC too long {0}: {1}\n'.format(len(cc), filepath))
-    if len(bcc)>1000: logfile.write('BCC too long {0}: {1}\n'.format(len(bcc), filepath))
-    if len(subject)>200: logfile.write('Subject too long {0}: {1}\n'.format(len(subject),filepath))
 
     logfile.close()
     return
