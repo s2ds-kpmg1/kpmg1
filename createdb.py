@@ -36,15 +36,15 @@ def createDB():
     TABLES['emails'] = (\
         "CREATE TABLE `emails` (\
           `id` INT NOT NULL AUTO_INCREMENT,\
-          `sender` varchar(100) NOT NULL,\
-          `to` text(10000) NOT NULL,\
+          `sender` varchar(500) NOT NULL,\
+          `to` longtext NOT NULL,\
           `subject` varchar(500), \
           `date` datetime NOT NULL,\
-          `cc` text(10000),\
-          `bcc` text(10000),\
-          `rawtext` text(50000) NOT NULL,\
-          `text` text(50000) NOT NULL,\
-          `fileloc` varchar(500) NOT NULL,\
+          `cc` longtext,\
+          `bcc` longtext,\
+          `rawtext` longtext NOT NULL,\
+          `text` longtext NOT NULL,\
+          `fileloc` varchar(1000) NOT NULL,\
           PRIMARY KEY (id)\
         ) ENGINE=InnoDB;")
 
@@ -130,6 +130,20 @@ def formatDate(datestring):
     formatdate = datetime.datetime.strftime(dateobj, '%Y-%m-%d %H:%M:%S')
     return formatdate
 
+def stripCharacters(string, backslash_char = True):
+
+    """Strips the weird non-unicode characters that appear in the odd email"""
+
+            
+    newstring = re.sub(r"[\x90-\xff]", '',string)
+
+    if (backslash_char == True):
+        newstring2 = re.sub(r'\r|\n|\t', ' ', newstring)
+    else:
+        newstring2 = newstring
+
+    return newstring2
+
 
 def addDBEntry(connect,cur, tablename, email, filepath):
 
@@ -137,12 +151,12 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     print '**************************'
     print filepath
 
-    sender = email['From']
+    sender = mdb.escape_string(stripCharacters(email['From']))
+
     to = email['To']
 
     if (to != None): 
 
-        to = re.sub('"', '', to)
         to = re.sub("(E-mail)", "", to)
         to = re.sub('<', '', to)
         to = re.sub('>', '', to)
@@ -150,11 +164,13 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     else:
         to = 'unknown'
 
+    to = stripCharacters(to)
+    to = mdb.escape_string(to)
 
     cc = email['X-cc']
 
+
     if (cc != None):
-        cc = re.sub('"', '', cc)
         cc = re.sub('(E-mail)', '', cc)
         cc = re.sub('<', '', cc)
         cc = re.sub('>', '', cc)
@@ -162,12 +178,15 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     else:
         cc = ''
 
+    cc = stripCharacters(cc)
+    cc = mdb.escape_string(cc)
+
 
 
     bcc=email['X-bcc']
     
     if (bcc != None):
-        bcc = re.sub('"', '', bcc)
+   
         bcc = re.sub('(E-mail)', '', bcc)
         bcc = re.sub('<', '', bcc)
         bcc = re.sub('>', '', bcc)
@@ -175,26 +194,27 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     else:
         bcc = ''
 
-    subject=email['Subject']
-    subject = re.sub('"', '', subject)
+    bcc = stripCharacters(bcc)
+    bcc = mdb.escape_string(bcc)
+
+    subject=stripCharacters(email['Subject'])
+    subject = mdb.escape_string(subject)
+
 
     date = email['Date']
   
     formated_date = formatDate(date)
 
     localfile = filepath
-    rawtext = email.get_payload()
-
-    #convert any " to '
-
-    rawtext = re.sub(r'"', "'", rawtext)
-    #escape any apostrophes, 
-
-    rawtext = re.sub(r"'", "\'", rawtext)
-
-
+    
+    #keep all the raw text formatting
+    rawtext = stripCharacters(email.get_payload(),backslash_char = False)
+    
 
     cleantext = cleanMessage(rawtext)
+
+    rawtext = mdb.escape_string(rawtext)
+    cleantext = mdb.escape_string(cleantext)
 
     #now create the syntax to add an entry to the db
 
@@ -230,7 +250,7 @@ def cleanMessage(message):
 
     #remove \n
 
-    clean1 = re.sub(r'\n', ' ', message)
+    clean1 = re.sub(r'\n|\r|\t', ' ', message)
 
     #remove - which repeat >=3 times
 
