@@ -325,7 +325,7 @@ def main():
     duplicate_log.close()
 
     print '{0} entries added to the database'.format(filecount)
-    print '{1} files discounted as duplicates'.format(duplicate_count)
+    print '{0} files discounted as duplicates'.format(duplicate_count)
 
 
 
