@@ -32,7 +32,7 @@ def createDB():
     # TABLES['newname']= and fill in the new columns in the same format
     #I've added a local file location to be helpful during debugging/creation
 
-    DB_NAME='enron_test'
+    DB_NAME='enron'
     TABLES={}
     TABLES['emails'] = (\
         "CREATE TABLE `emails` (\
@@ -69,7 +69,7 @@ def createDB():
 
         #must tell it which db to use first
 
-        cursor.execute('USE `enron_test`;')
+        cursor.execute('USE `enron`;')
 
 
         try:
@@ -297,12 +297,13 @@ def main():
 
     startdir = args.startdir
 
-    found = []
 
     hashlist=[]
 
     duplicate_log = open('duplicate_log.txt', 'w')
 
+
+    print 'Walking the directory tree (this takes a while)....'
 
     for dir,subdir,files in os.walk(startdir):
 
@@ -313,16 +314,20 @@ def main():
             #calculate hash
 
             with open(filepath, 'r') as efile:
-                msg = efile.readlines()
-            msg = [x for x in msg if not x.startswith('Message-ID') and not x.startswith('X-Folder')]
-            msg = ' '.join(msg)
+                msglines = efile.readlines()
+            msg2 = [x for x in msglines if not x.startswith('Message-ID') and not x.startswith('X-Folder')]
+            msg2 = ''.join(msg2)
             m = hashlib.md5()
-            m.update(msg)
+            m.update(msg2)
 
             if m.hexdigest() not in hashlist:
 
                 hashlist.append(m.hexdigest())
-                found.append(filepath)
+
+                msg = email.message_from_string(''.join(msglines))
+
+                addDBEntry(connection,cursor, 'emails', msg, filepath)
+
 
             else:
 
@@ -331,20 +336,9 @@ def main():
 
 
 
-
-
-    for message in found:
-
-        #create email object from the file list.  Process each one then send to DB
-
-        with open(message, 'r') as efile:
-            msg = email.message_from_file(efile)
-
-
-        addDBEntry(connection,cursor, 'emails', msg, message)
-
     connection.close()
     duplicate_log.close()
+
 
 
 
