@@ -10,6 +10,8 @@ import __future__
 import re
 import pdb
 import datetime
+import hashlib
+import enron
 
 parser = argparse.ArgumentParser("Create database from email files")
 parser.add_argument("startdir", type = str, help='Starting place for directory tree')
@@ -92,23 +94,6 @@ def createDB():
 
     return
 
-
-def deleteTable(cur, tablename):
-
-    cur.execute("""DROP TABLE IF EXISTS {0}""".format(tablename))
-    return
-
-def deleteDB(cur, dbname):
-
-    cur.execute("""DROP DATABASE IF EXISTS {0}""".format(dbname))
-    return
-
-def connectDB(db):
-
-    connection = mdb.connect('localhost', 'kpmg1', 's2ds', db)
-    cursor=connection.cursor()
-
-    return (connection,cursor)
 
 
 def formatDate(datestring):
@@ -294,7 +279,7 @@ def main():
 
 
     createDB()
-    connection, cursor = connectDB('enron')
+    connection, cursor = enron.connectDB('enron')
 
 
 
@@ -303,25 +288,56 @@ def main():
 
     startdir = args.startdir
 
-    found = []
+
+    hashlist=[]
+
+    duplicate_log = open('duplicate_log.txt', 'w')
+
+    filecount = 0
+    duplicate_count = 0
+
+
+    print 'Walking the directory tree (this takes a while)....'
 
     for dir,subdir,files in os.walk(startdir):
 
         for ff in files:
 
-            found.append(os.path.join(dir,ff))
+            filepath = os.path.join(dir,ff)
 
-    for message in found:
+            #calculate hash
 
-        #create email object from the file list.  Process each one then send to DB
+            with open(filepath, 'r') as efile:
+                msglines = efile.readlines()
+            msg2 = [x for x in msglines if not x.startswith('Message-ID') and not x.startswith('X-Folder')]
+            msg2 = ''.join(msg2)
+            m = hashlib.md5()
+            m.update(msg2)
 
-        with open(message, 'r') as efile:
-            msg = email.message_from_file(efile)
-        
+            if m.hexdigest() not in hashlist:
 
-        addDBEntry(connection,cursor, 'emails', msg, message)
+                hashlist.append(m.hexdigest())
+
+                msg = email.message_from_string(''.join(msglines))
+
+                addDBEntry(connection,cursor, 'emails', msg, filepath)
+                filecount+=1
+
+
+            else:
+
+                'Duplicate message found {0}'.format(filepath)
+                duplicate_log.write(m.hexdigest()+'\t'+filepath+'\n')
+                duplicate_count+=1
+
+
 
     connection.close()
+    duplicate_log.close()
+
+    print '{0} entries added to the database'.format(filecount)
+    print '{1} files discounted as duplicates'.format(duplicate_count)
+
 
 
 
