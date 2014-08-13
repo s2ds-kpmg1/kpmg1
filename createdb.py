@@ -302,6 +302,9 @@ def main():
 
     duplicate_log = open('duplicate_log.txt', 'w')
 
+    filecount = 0
+    duplicate_count = 0
+
 
     print 'Walking the directory tree (this takes a while)....'
 
@@ -327,17 +330,22 @@ def main():
                 msg = email.message_from_string(''.join(msglines))
 
                 addDBEntry(connection,cursor, 'emails', msg, filepath)
+                filecount+=1
 
 
             else:
 
                 'Duplicate message found {0}'.format(filepath)
                 duplicate_log.write(m.hexdigest()+'\t'+filepath+'\n')
+                duplicate_count+=1
 
 
 
     connection.close()
     duplicate_log.close()
+
+    print '{0} entries added to the database'.format(filecount)
+    print '{1} files discounted as duplicates'.format(duplicate_count)
 
 
 
