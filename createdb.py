@@ -10,6 +10,7 @@ import __future__
 import re
 import pdb
 import datetime
+import hashlib
 
 parser = argparse.ArgumentParser("Create database from email files")
 parser.add_argument("startdir", type = str, help='Starting place for directory tree')
@@ -31,7 +32,7 @@ def createDB():
     # TABLES['newname']= and fill in the new columns in the same format
     #I've added a local file location to be helpful during debugging/creation
 
-    DB_NAME='enron'
+    DB_NAME='enron_test'
     TABLES={}
     TABLES['emails'] = (\
         "CREATE TABLE `emails` (\
@@ -68,7 +69,7 @@ def createDB():
 
         #must tell it which db to use first
 
-        cursor.execute('USE `enron`;')
+        cursor.execute('USE `enron_test`;')
 
 
         try:
@@ -298,11 +299,39 @@ def main():
 
     found = []
 
+    hashlist=[]
+
+    duplicate_log = open('duplicate_log.txt', 'w')
+
+
     for dir,subdir,files in os.walk(startdir):
 
         for ff in files:
 
-            found.append(os.path.join(dir,ff))
+            filepath = os.path.join(dir,ff)
+
+            #calculate hash
+
+            with open(filepath, 'r') as efile:
+                msg = efile.readlines()
+            msg = [x for x in msg if not x.startswith('Message-ID') and not x.startswith('X-Folder')]
+            msg = ' '.join(msg)
+            m = hashlib.md5()
+            m.update(msg)
+
+            if m.hexdigest() not in hashlist:
+
+                hashlist.append(m.hexdigest())
+                found.append(filepath)
+
+            else:
+
+                'Duplicate message found {0}'.format(filepath)
+                duplicate_log.write(m.hexdigest()+'\t'+filepath+'\n')
+
+
+
+
 
     for message in found:
 
@@ -310,11 +339,12 @@ def main():
 
         with open(message, 'r') as efile:
             msg = email.message_from_file(efile)
-        
+
 
         addDBEntry(connection,cursor, 'emails', msg, message)
 
     connection.close()
+    duplicate_log.close()
 
 
 
