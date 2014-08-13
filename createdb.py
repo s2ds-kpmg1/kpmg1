@@ -4,17 +4,40 @@
 
 import email
 import os, sys
-import argparse
+#import argparse
+from optparse import OptionParser
 import MySQLdb as mdb
 import __future__
 import re
 import pdb
 import datetime
 import hashlib
-import enron
 
-parser = argparse.ArgumentParser("Create database from email files")
-parser.add_argument("startdir", type = str, help='Starting place for directory tree')
+# These files must be present in working directory!
+import enron
+import scrubbing
+
+# parser = argparse.ArgumentParser("Create database from email files")
+# parser.add_argument("startdir", type = str, help='Starting place for directory tree')
+# parser.add_argument("tokenizer", type = str, help='Select tokenizer: wordpunct or punktword')
+# parser.add_argument("tokenminlen", type = str, help='Select minimum length of admissible tokens')
+# parser.add_argument("stemmer", type = str, help='Select stemmer: lemmatize, snowball, porter or lancaster')
+
+parser=OptionParser(usage='Usage: %prog [options] DIR [DIR...]')
+parser.add_option("-d","--startdir",action="store",type='string',default=None,dest="startdir",
+        help="Set the address of the directory containing the target emails.")
+parser.add_option("-t","--tokenizer",action="store",type='string',default='wordpunct',
+        dest="tokenizer",
+        help="Set the desired tokenizer: wordpunct or punktword.")
+parser.add_option("-l","--tokenminlen",action="store",type='int',default=2,dest="tokenminlen",
+        help="Set the minimum character length for tokens.")
+parser.add_option("-s","--stemmer",action="store",type='string',default='lemmatize',
+        dest="stemmer",
+        help="Choose the stemmer: lemmatize, snowball, porter or lancaster.")
+
+
+args,opts=parser.parse_args()
+
 
 
 def createDB():
@@ -46,6 +69,7 @@ def createDB():
           `bcc` longtext,\
           `rawtext` longtext NOT NULL,\
           `text` longtext NOT NULL,\
+          `cleantext` longtext NOT NULL,\
           `fileloc` varchar(1000) NOT NULL,\
           PRIMARY KEY (id)\
         ) ENGINE=InnoDB;")
@@ -54,6 +78,9 @@ def createDB():
 
     try:
 
+        # Check that the DB doesn't already exist, and if it does delete it.
+        enron.deleteDB(cursor,DB_NAME)
+        #cursor.execute("DROP DATABASE IF EXISTS {0}".format(DB_NAME))
         cursor.execute("CREATE DATABASE {0} DEFAULT CHARACTER SET 'utf8'".format(DB_NAME))
 
     except mdb.Error as err:
@@ -69,9 +96,7 @@ def createDB():
     for name,ddl in TABLES.iteritems():
 
         #must tell it which db to use first
-
         cursor.execute('USE `enron`;')
-
 
         try:
 
@@ -81,17 +106,14 @@ def createDB():
         except mdb.Error, err:
 
             if int(str(err).split()[0][1:5]) == 1050:
-
                 print ("Table {0} already exists".format(name))
             else:
                 print (err)
-
 
     if connection:
         connection.close()
 
     #Close the empty database if it is created correctly
-
     return
 
 
@@ -99,17 +121,13 @@ def createDB():
 def formatDate(datestring):
 
     #this is probably specific to this email system I don't know
-
     datestring = datestring.split()
 
     #got a weird error where the year in the email is listed as 0001 so add 1900
     #to enable python to deal with it.
-
     if (int(datestring[3]) < 1900): datestring[3] = str(int(datestring[3])+1900)
     rearrange = '{0} {1} {2} {3}'.format(datestring[1], datestring[2].upper(), datestring[3], datestring[4])
     
-    
-
     dateobj = datetime.datetime.strptime(rearrange, '%d %b %Y %H:%M:%S')
 
     formatdate = datetime.datetime.strftime(dateobj, '%Y-%m-%d %H:%M:%S')
@@ -151,9 +169,7 @@ def addDBEntry(connect,cur, tablename, email, filepath):
 
     to = stripCharacters(to)
     to = mdb.escape_string(to)
-
     cc = email['X-cc']
-
 
     if (cc != None):
         cc = re.sub('(E-mail)', '', cc)
@@ -165,9 +181,6 @@ def addDBEntry(connect,cur, tablename, email, filepath):
 
     cc = stripCharacters(cc)
     cc = mdb.escape_string(cc)
-
-
-
     bcc=email['X-bcc']
     
     if (bcc != None):
@@ -185,7 +198,6 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     subject=stripCharacters(email['Subject'])
     subject = mdb.escape_string(subject)
 
-
     date = email['Date']
   
     formated_date = formatDate(date)
@@ -194,19 +206,24 @@ def addDBEntry(connect,cur, tablename, email, filepath):
     
     #keep all the raw text formatting
     rawtext = stripCharacters(email.get_payload(),backslash_char = False)
-    
-
     cleantext = cleanMessage(rawtext)
+
+    
+    stemmer=args.stemmer
+    tokenizer=args.tokenizer
+    tokenminlen=args.tokenminlen
+    tokenizedtext=scrubbing.stemVector(scrubbing.cleanVector(scrubbing.tokenizeString(cleantext,True,tokenizer),True,True,tokenminlen),stemmer)
 
     rawtext = mdb.escape_string(rawtext)
     cleantext = mdb.escape_string(cleantext)
+    #tokenizedtext=mdb.escape_string(tokenizedtext)
 
     #now create the syntax to add an entry to the db
 
     query = """INSERT INTO {0} (`sender`, `to`, `date`,`subject`,  `cc`, `bcc`, \
-        `rawtext`, `text`, `fileloc`) VALUES ("{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", \
-        "{8}","{9}");""".format(tablename, sender, to, formated_date, subject, cc, bcc,\
-         rawtext,cleantext,filepath)
+        `rawtext`, `text`, `cleantext`, `fileloc`) VALUES ("{1}", "{2}", "{3}", "{4}", "{5}", "{6}", "{7}", \
+        "{8}","{9}","{10}");""".format(tablename, sender, to, formated_date, subject, cc, bcc,\
+         rawtext,cleantext,tokenizedtext,filepath)
 
     #print query
 
@@ -234,29 +251,23 @@ def addDBEntry(connect,cur, tablename, email, filepath):
 def cleanMessage(message):
 
     #remove \n
-
     clean1 = re.sub(r'\n|\r|\t', ' ', message)
 
     #remove - which repeat >=3 times
-
     clean2 = re.sub(r'-{3,}', '', clean1)
 
     #remove leading/trailing whitespace
-
     clean2 = clean2.strip()
 
     #locate multiple email chains and cut on first occurance of Original Message
     #this creates a match object
-
     match = re.search(r'Original Message', clean2)
 
     #match.start is the index of the first occurance of the search string. Want the 
     #message from the beginning to that point
-
     if (match==None):
         return clean2
     else:
-
         clean3 = clean2[:match.start()]
 
         return clean3
@@ -267,27 +278,13 @@ def cleanMessage(message):
 
 def main():
  
-    args = parser.parse_args()
 
     #First thing: create the DB
-
-    # Check that the DB doesn't already exist, and if it does, delete it. Comment this later, I just inserted this for now in case more than one attempt to create the DB was required.
-    #con = mdb.connect('localhost', 'kpmg1', 's2ds')
-    #cur=con.cursor()
-    #deleteDB(cur,'enron')
-    #con.close()
-
-
     createDB()
     connection, cursor = enron.connectDB('enron')
 
-
-
-
     #start directory is unique for each person
-
     startdir = args.startdir
-
 
     hashlist=[]
 
@@ -295,7 +292,6 @@ def main():
 
     filecount = 0
     duplicate_count = 0
-
 
     print 'Walking the directory tree (this takes a while)....'
 
@@ -306,7 +302,6 @@ def main():
             filepath = os.path.join(dir,ff)
 
             #calculate hash
-
             with open(filepath, 'r') as efile:
                 msglines = efile.readlines()
             msg2 = [x for x in msglines if not x.startswith('Message-ID') and not x.startswith('X-Folder')]
@@ -315,22 +310,16 @@ def main():
             m.update(msg2)
 
             if m.hexdigest() not in hashlist:
-
                 hashlist.append(m.hexdigest())
-
                 msg = email.message_from_string(''.join(msglines))
-
                 addDBEntry(connection,cursor, 'emails', msg, filepath)
                 filecount+=1
-
 
             else:
 
                 'Duplicate message found {0}'.format(filepath)
                 duplicate_log.write(m.hexdigest()+'\t'+filepath+'\n')
                 duplicate_count+=1
-
-
 
     connection.close()
     duplicate_log.close()
