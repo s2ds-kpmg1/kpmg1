@@ -286,6 +286,13 @@ def main():
 
     #First thing: create the DB
 
+    # Check that the DB doesn't already exist, and if it does, delete it. Comment this later, I just inserted this for now in case more than one attempt to create the DB was required.
+    #con = mdb.connect('localhost', 'kpmg1', 's2ds')
+    #cur=con.cursor()
+    #deleteDB(cur,'enron')
+    #con.close()
+
+
     createDB()
     connection, cursor = connectDB('enron')
 
