@@ -53,3 +53,7 @@ coverage.xml
 docs/_build/
 
 enron_mail_20110402.tgz
+createdb.pyc
+.gitignore
+duplicate_log.txt
+logfile
