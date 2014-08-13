@@ -11,6 +11,7 @@ import re
 import pdb
 import datetime
 import hashlib
+import enron
 
 parser = argparse.ArgumentParser("Create database from email files")
 parser.add_argument("startdir", type = str, help='Starting place for directory tree')
@@ -93,23 +94,6 @@ def createDB():
 
     return
 
-
-def deleteTable(cur, tablename):
-
-    cur.execute("""DROP TABLE IF EXISTS {0}""".format(tablename))
-    return
-
-def deleteDB(cur, dbname):
-
-    cur.execute("""DROP DATABASE IF EXISTS {0}""".format(dbname))
-    return
-
-def connectDB(db):
-
-    connection = mdb.connect('localhost', 'kpmg1', 's2ds', db)
-    cursor=connection.cursor()
-
-    return (connection,cursor)
 
 
 def formatDate(datestring):
@@ -287,8 +271,15 @@ def main():
 
     #First thing: create the DB
 
+    # Check that the DB doesn't already exist, and if it does, delete it. Comment this later, I just inserted this for now in case more than one attempt to create the DB was required.
+    #con = mdb.connect('localhost', 'kpmg1', 's2ds')
+    #cur=con.cursor()
+    #deleteDB(cur,'enron')
+    #con.close()
+
+
     createDB()
-    connection, cursor = connectDB('enron')
+    connection, cursor = enron.connectDB('enron')
 
 
 
@@ -301,6 +292,9 @@ def main():
     hashlist=[]
 
     duplicate_log = open('duplicate_log.txt', 'w')
+
+    filecount = 0
+    duplicate_count = 0
 
 
     print 'Walking the directory tree (this takes a while)....'
@@ -327,17 +321,22 @@ def main():
                 msg = email.message_from_string(''.join(msglines))
 
                 addDBEntry(connection,cursor, 'emails', msg, filepath)
+                filecount+=1
 
 
             else:
 
                 'Duplicate message found {0}'.format(filepath)
                 duplicate_log.write(m.hexdigest()+'\t'+filepath+'\n')
+                duplicate_count+=1
 
 
 
     connection.close()
     duplicate_log.close()
+
+    print '{0} entries added to the database'.format(filecount)
+    print '{1} files discounted as duplicates'.format(duplicate_count)
 
 
 
