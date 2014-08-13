@@ -11,6 +11,7 @@ import re
 import pdb
 import datetime
 import hashlib
+import enron
 
 parser = argparse.ArgumentParser("Create database from email files")
 parser.add_argument("startdir", type = str, help='Starting place for directory tree')
@@ -93,23 +94,6 @@ def createDB():
 
     return
 
-
-def deleteTable(cur, tablename):
-
-    cur.execute("""DROP TABLE IF EXISTS {0}""".format(tablename))
-    return
-
-def deleteDB(cur, dbname):
-
-    cur.execute("""DROP DATABASE IF EXISTS {0}""".format(dbname))
-    return
-
-def connectDB(db):
-
-    connection = mdb.connect('localhost', 'kpmg1', 's2ds', db)
-    cursor=connection.cursor()
-
-    return (connection,cursor)
 
 
 def formatDate(datestring):
@@ -288,7 +272,7 @@ def main():
     #First thing: create the DB
 
     createDB()
-    connection, cursor = connectDB('enron')
+    connection, cursor = enron.connectDB('enron')
 
 
 
