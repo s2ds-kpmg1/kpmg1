@@ -81,7 +81,8 @@ def main():
     cur=connection.cursor()
 
 
-    # In our case the IDs are ordered by entry. Otherwise you could do: cur.execute("SELECT COUNT(*) FROM emails;")
+    # In our case the IDs are ordered by entry. Otherwise you could do:
+    #  cur.execute("SELECT COUNT(*) FROM emails;")
     # The last ID number gives us the number of rows of the table.
     cur.execute("select id from emails order by id desc limit 1;")
     res = cur.fetchall()
@@ -103,7 +104,9 @@ def main():
     raw=" ".join(texts)
 
     # Additional stopwords found in the results
-    add_stopwords=['http','https','www','com','href','nbsp']
+    add_stopwords=['http','https','www','com','href','nbsp','arial','helvetica',
+                   'font','verdana','fri','sat','font','bgcolor','ffffff',
+                   'tel','fax']
 
     # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
     tokens=[word for word in gensim.utils.tokenize(raw, lower=True)
