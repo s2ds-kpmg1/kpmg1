@@ -1,91 +1,172 @@
 #!/usr/env/python
 
 """We can use the getattr() function to test a whole range of functions/set-ups/combinations
-in one place"""
+in one place
+
+To use this at the command line use the following:
+
+python stemming_test.py --help (will output the correctly formatted help command)
+python stemming_test.py -f 0.01 [-o mytimingsoutput.log]
+
+-f is the fraction of the dataset you want to work on
+-o an option to change the name of the output file for the timings, otherwise it writes to timings.log
+"""
+
+
 
 import gensim
 import nltk
 from nltk.corpus import stopwords
-import mdb
+import MySQLdb as mdb
 import enron
+import pdb
+import csv
+import time
+import argparse
+
+def getFunctionName(fstring):
+
+    """Get function/module names from the command input"""
+
+    t1 = fstring.split()
+    t2 = t1[-1][2:].strip('()')
+    return t2
+
+def cleanTokens(tokens,minlen=2):
+    output=[]
+    disallowedchar=set(["!","?",'"',"'",",",".",":",";","-"])
+
+    for i in tokens:
+        if ((len(set(i).intersection(disallowedchar)) == 0) and 
+            (not i.endswith('dn')) and 
+            (len(i) > minlen)):
+            output.append(i)
+        
+    return output
+
+parser = argparse.ArgumentParser(description="Testing the different tokenisation/stemming methods")
+parser.add_argument('-f', '--fraction', help = 'Fraction of sample required', required = True, type=float)
+parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings', default = 'timings.log', type = str)
+
+
+
 
 def main():
 
-	stopwords = stopwords.words('english')
-	
-	
-	
-	# NB this is just rough code while I have the ideas. It's not tested or anything
-	
-	token_packages = [
-						'nltk.tokenize.WordPunctTokenizer',
-						'nltk.tokenize.PunktWordTokenizer', 
-						'gensim.utils'
-						]
-	
-	token_func = ['tokenize', 
-					'tokenize', 
-					'tokenize']
-	
-	
-	stem_packages = ['nltk.stem.snowball.EnglishStemmer', 
-						'nltk.stem.snowball.PorterStemmer', 
-						'nltk.stem.lancaster.LancasterStemmer',
-						'nltk.stem.WordNetLemmatizer', 
-						'gensim.utils']
-	
-	stem_func = ['stem', 'stem', 'stem', 'lemmatize',
-		'lemmatize']
-	
+    stop_words = stopwords.words('english')
 
-	text = enron.querySample(0.001)
+    args = parser.parse_args()
 
-	text = text.lower()
-	
-	token_args = [(text),(text), (text)]
-	token_kwargs = [{}, {}, {}]
-	
-	stem_kwargs = [{}, {}, {}, {}, {}]
-	
-	#loop over each version
-	
-	for (tpackage, tfunc, targ, tkwarg) in zip(token_packages,token_func, token_args, token_kwargs):
-	
-		for (spackage, sfunc, skwarg) in zip(stem_packages, stem_packages, stem_kwargs):
-	
-			output = 'testing_{0}.{1}_{2}.{3}.txt'.format(tpackage,tfunc, spackage,sfunc)
-	
-			outfile = open(output, 'w')
-	
-			tokenizerFunction = getattr(tpackage, tfunc)
-			text_token = tokenizerFunction(*token_args, **token_kwargs)
-	
-			stemFunction = getattr(spackage, sfunc)
-	
-			if spackage == 'gensim.utils':
-	
-				text_stem  = stemFunction(*(text_token),**stem_kwargs))
-	
-			elif spackage == nltk.stem.WordNetLemmatizer
-	
-				wnl = WordNetLemmatizer
-				stemFunction_new = wnl
-				text_stem = [stemFunction_new(*(word),**stem_kwargs) for word in text_token]
-	
-			else:
-	
-				text_stem = [stemFunction(*(word), **stem_kwargs) for word in text_token]
-	
-	
-			text_stem = [x for x in text_stem if x not in stopwords]
-	
-	
-			output.write(text_stem)
-	
-			output.close()
+    timinglog = open(args.output_timelog, 'w')
+
+    timinglog.write('#Tokeniser Stemmer/Lemmatiser Codetime Writetime\n')
+    
+    
+    
+    # NB this is just rough code while I have the ideas. It's not tested or anything
 
 
-if __main___ == main:
-	main()
+    token_command = [
+    				["nltk", "f = p.tokenize.WordPunctTokenizer()", "tokenize"],
+    				["nltk", "f = p.tokenize.PunktWordTokenizer()", "tokenize"],
+    				["gensim", "f = p.utils", "tokenize"]
+
+    ]
+    
+    stem_command = [
+    				["nltk", "g = q.stem.snowball.EnglishStemmer()", "stem"],
+    				["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
+    				["nltk", "g = q.stem.lancaster.LancasterStemmer()", "stem"],
+    				["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
+    				["gensim", "g = q.utils", "lemmatize"]
+    ]
+
+    print 'Getting Text'
+    text, email_ids = enron.querySample(args.fraction, return_sample = True)
+
+    with open('email_sample.log', 'w') as elog:
+
+        for id in email_ids:
+
+            elog.write('{0}\n'.format(id))
+
+
+
+    text = [t.lower() for t in text]
+
+    text = ' '.join(text)
+    
+    token_args = [text,text, text]
+    token_kwargs = [{}, {}, {}]
+    
+    stem_kwargs = [{}, {}, {}, {}, {}]
+    
+    #loop over each version
+    
+    for (tcommand, targ, tkwarg) in zip(token_command, token_args, token_kwargs):
+    
+
+        for (scommand, skwarg) in zip(stem_command, stem_kwargs):
+
+            n1 = tcommand[0]
+            n2 = getFunctionName(tcommand[1])+'.'+tcommand[2]
+            n3 = scommand[0]
+            n4 = getFunctionName(scommand[1])+'.'+scommand[2]
+    
+            output = 'testing_{0}.{1}_{2}.{3}.csv'.format(n1,n2,n3,n4)
+
+            print 'Currently working on {0}.{1} with {2}.{3}'.format(n1,n2,n3,n4)
+        
+
+            start_code = time.time()
+
+            p = __import__(tcommand[0])
+            exec tcommand[1]
+            text_token = list(getattr(f, tcommand[2])(targ,**tkwarg))
+
+            #tokenising complete
+
+            text_token = cleanTokens(text_token)
+    
+            q = __import__(scommand[0])
+            exec scommand[1]
+    
+            if scommand[0] == 'gensim':
+    
+            	text_stem  = getattr(g, scommand[2])(unicode(text_token))
+    
+            
+            else:
+
+    
+            	text_stem = [getattr(g, scommand[2])(word) for word in text_token]
+    
+    
+            text_stem = [x for x in text_stem if x not in stop_words]
+    
+            end_code = time.time()
+
+            codetime = end_code - start_code
+
+            print 'Total time for set-up: {0}'.format(codetime)
+
+            start_write = time.time()
+
+            with open(output, "wb") as f:
+                writer = csv.writer(f)  
+                writer.writerows([text_stem])
+
+            end_write = time.time()
+
+            writetime = end_write - start_write
+    
+            print 'Total time for write out: {0}'.format(writetime)
+
+            timinglog.write("{0}.{1}\t{2}.{3}\t{4}\t{5}\n".format(n1, n2, n3, n4, codetime, writetime))
+
+    timinglog.close()
+
+if __name__ == '__main__':
+    main()
 
 
