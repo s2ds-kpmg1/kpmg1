@@ -1,19 +1,18 @@
 __author__ = 'elenagr'
 
+"""
+This function computes the ngrams of a random sample of emails from the database and writes
+a/two file/s with the results (bigrams.txt and/or trigrams.txt)
+
+Usage:
+python collocations --sample 0.5 --min_freq 1000 --max_col 1000 --word_len 3
+"""
 import logging
-import re
 import argparse
 import math
 import random
 import MySQLdb as mdb
-
-import nltk
-from nltk import word_tokenize
-from nltk.collocations import TrigramCollocationFinder
-from nltk.metrics import BigramAssocMeasures, TrigramAssocMeasures
-
-import gensim
-from gensim.parsing.preprocessing import STOPWORDS
+import ngrams
 
 logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
@@ -24,45 +23,6 @@ parser.add_argument("--min_freq",help="Minimal frequency of ocurrence to be cons
 parser.add_argument("--max_col",help="Maximal number of collocations to be found",required=True,type=int)
 parser.add_argument("--word_len",help="Minimal word length to be considered",required=True,type=int)
 
-def best_ngrams(words, top_n=1000, min_freq=100):
-
-    """
-    This function has been extracted from a tutorial given in Europython 2014 about
-    topic modelling given by Radim Rehurek
-
-    Extract `top_n` most salient collocations (bigrams and trigrams),
-    from a stream of words. Ignore collocations with frequency
-    lower than `min_freq`.
-
-    This fnc uses NLTK for the collocation detection itself -- not very scalable!
-
-    Return the detected ngrams as compiled regular expressions, for their faster
-    detection later on.
-
-    """
-    tcf = TrigramCollocationFinder.from_words(words)
-    tcf.apply_freq_filter(min_freq)
-    trigrams = [' '.join(w) for w in tcf.nbest(TrigramAssocMeasures.chi_sq, top_n)]
-    logging.info("%i trigrams found: %s..." % (len(trigrams), trigrams[:20]))
-
-    bcf = tcf.bigram_finder()
-    bcf.apply_freq_filter(min_freq)
-    bigrams = [' '.join(w) for w in bcf.nbest(BigramAssocMeasures.pmi, top_n)]
-    logging.info("%i bigrams found: %s..." % (len(bigrams), bigrams[:20]))
-
-    # Write collocations to two files to be read by the preprocess program
-    f1 = open('bigrams.txt', 'w')
-    f1.writelines(["%s\n" % item  for item in bigrams])
-    f1.close()
-
-    f2 = open('trigrams.txt', 'w')
-    f2.writelines(["%s\n" % item  for item in trigrams])
-    f2.close()
-
-    pat_gram2 = re.compile('(%s)' % '|'.join(bigrams), re.UNICODE)
-    pat_gram3 = re.compile('(%s)' % '|'.join(trigrams), re.UNICODE)
-
-    return pat_gram2, pat_gram3
 
 def main():
     args = parser.parse_args()
@@ -90,6 +50,7 @@ def main():
 
 
     # We generate a random sample of the entries.
+    random.seed(123)
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
 
     texts=[]
@@ -103,22 +64,7 @@ def main():
     # Join all the text into a string to be able to count the frequency of ocurrence
     raw=" ".join(texts)
 
-    # Additional stopwords found in the results
-    add_stopwords=['http','https','www','com','href','nbsp','arial','helvetica',
-                   'font','verdana','sans','serif','fri','sat','font','bgcolor','ffffff',
-                   'tel','fax']
-
-    # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
-    tokens=[word for word in gensim.utils.tokenize(raw, lower=True)
-                if word not in STOPWORDS and len(word) > min_len if word not in add_stopwords]
-
-    # Find the collocations in our text based on the frequency they appear.
-    # Here is where all the magic happens :-)
-    best_ngrams(tokens, top_n=n_col, min_freq=freq)
-
-    # Naive version of the code
-    #text = nltk.Text(tokens)
-    #coll=text.collocations()
+    ngrams.ngramsFinder(raw,freq, n_col,min_len)
 
     # Close all cursors
     connection.close()
