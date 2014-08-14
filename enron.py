@@ -34,7 +34,7 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
 
 
 
-def querySample(N):
+def querySample(N, return_sample = False):
     con, cur=connectDB("enron")
 
     cur.execute("select id from emails order by id desc limit 1;")
@@ -53,7 +53,10 @@ def querySample(N):
 
     con.close()
 
-    return texts
+    if not return_sample:
+        return texts
+    else:
+        return (texts, sample)
 
 
 def deleteTable(cur, tablename):
