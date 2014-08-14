@@ -19,7 +19,10 @@ logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
 
 parser = argparse.ArgumentParser(description="Generating a dictionary of stopwords")
-parser.add_argument("--sample",help="Size of sample in percentage", dest="sample",required=True,type=float)
+parser.add_argument("--sample",help="Size of sample in percentage", required=True,type=float)
+parser.add_argument("--min_freq",help="Minimal frequency of ocurrence to be considered",required=True,type=int)
+parser.add_argument("--max_col",help="Maximal number of collocations to be found",required=True,type=int)
+parser.add_argument("--word_len",help="Minimal word length to be considered",required=True,type=int)
 
 def best_ngrams(words, top_n=1000, min_freq=100):
 
@@ -47,17 +50,31 @@ def best_ngrams(words, top_n=1000, min_freq=100):
     bigrams = [' '.join(w) for w in bcf.nbest(BigramAssocMeasures.pmi, top_n)]
     logging.info("%i bigrams found: %s..." % (len(bigrams), bigrams[:20]))
 
+    # Write collocations to two files to be read by the preprocess program
+    f1 = open('bigrams.txt', 'w')
+    f1.writelines(["%s\n" % item  for item in bigrams])
+    f1.close()
+
+    f2 = open('trigrams.txt', 'w')
+    f2.writelines(["%s\n" % item  for item in trigrams])
+    f2.close()
+
     pat_gram2 = re.compile('(%s)' % '|'.join(bigrams), re.UNICODE)
     pat_gram3 = re.compile('(%s)' % '|'.join(trigrams), re.UNICODE)
-
- #   print bigrams
- #   print trigrams
 
     return pat_gram2, pat_gram3
 
 def main():
     args = parser.parse_args()
     N = args.sample
+    freq = args.min_freq
+    n_col = args.max_col
+    min_len = args.word_len
+
+    print ("Sample Size: {0}*total").format(N)
+    print ("Minimum frequency: {0}").format(freq)
+    print ("Maximun number of collocations: {0}").format(n_col)
+    print ("Minimum word length: {0}").format(min_len)
 
     # Open the connection to the DB
     connection = mdb.connect('localhost', 'kpmg1', 's2ds','enron')
@@ -76,26 +93,33 @@ def main():
 
     texts=[]
 
+    # We query the emails in the sample and store them in a list
     for id in sample:
         cur.execute(" select text from emails where id = {0} ".format(id))
         tmp=cur.fetchall()
         texts.append(tmp[0][0])
 
+    # Join all the text into a string to be able to count the frequency of ocurrence
     raw=" ".join(texts)
 
-    new=['http','https','www','com']
+    # Additional stopwords found in the results
+    add_stopwords=['http','https','www','com','href','nbsp']
 
+    # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
     tokens=[word for word in gensim.utils.tokenize(raw, lower=True)
-                if word not in STOPWORDS and len(word) > 3 if word not in new]
-    #print tokens
-    best_ngrams(tokens, top_n=1000, min_freq=500)
+                if word not in STOPWORDS and len(word) > min_len if word not in add_stopwords]
 
-    text = nltk.Text(tokens)
-    coll=text.collocations()
+    # Find the collocations in our text based on the frequency they appear.
+    # Here is where all the magic happens :-)
+    best_ngrams(tokens, top_n=n_col, min_freq=freq)
+
+    # Naive version of the code
+    #text = nltk.Text(tokens)
+    #coll=text.collocations()
 
     # Close all cursors
     connection.close()
-    # Close all databases
+
     return
 
 
