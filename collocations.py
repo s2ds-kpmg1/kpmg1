@@ -52,17 +52,68 @@ def best_ngrams(words, top_n=1000, min_freq=100):
 
     # Write collocations to two files to be read by the preprocess program
     f1 = open('bigrams.txt', 'w')
-    f1.writelines(["%s\n" % item  for item in bigrams])
+    f1.writelines(["{0}\n".format(item)  for item in bigrams])
     f1.close()
 
     f2 = open('trigrams.txt', 'w')
-    f2.writelines(["%s\n" % item  for item in trigrams])
+    f2.writelines(["{0}\n".format(item)  for item in trigrams])
     f2.close()
 
     pat_gram2 = re.compile('(%s)' % '|'.join(bigrams), re.UNICODE)
     pat_gram3 = re.compile('(%s)' % '|'.join(trigrams), re.UNICODE)
 
     return pat_gram2, pat_gram3
+
+#def ngramsText(text,file1,file2):
+
+#    with open(file1) as f1:
+#    bigrams = f1.readlines()
+
+#    with open(file2) as f1:
+#    trigrams = f1.readlines()
+
+
+#    for item in trigrams:
+#        itemst=str(item)
+#        newtext=re.sub(itemst,itemst.replace(' ','_'), text.lower())
+
+#    for item in bigrams:
+#        itemst=str(item)
+#        newtext=re.sub(itemst,itemst.replace(' ','_'), text.lower())
+
+#    return newtext
+
+def ngramsFinder(text,min_freq,num_col,word_len):
+    # This function takes a text, looks for the best n-grams,
+    # and returns a new text where the n-grams have been replaced by
+    # single token joined by '_'. In addition it generates two files with the
+    # results (bigrams.txt and trigrams.txt)
+
+    # Additional stopwords found in the results
+
+
+    add_stopwords=['http','https','www','com','href','nbsp','arial','helvetica',
+                   'font','verdana','sans','serif','fri','sat','font','bgcolor','ffffff',
+                   'tel','fax','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa']
+
+    # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
+    tokens=[word for word in gensim.utils.tokenize(text, lower=True)
+                if word not in STOPWORDS and len(word) > word_len if word not in add_stopwords]
+
+    # Find the collocations in our text based on the frequency they appear.
+    # Here is where all the magic happens :-)
+    bigrams, trigrams=best_ngrams(tokens, top_n=num_col, min_freq=min_freq)
+
+    #  re.sub is a function of the regular expressions library (re) which returns a string obtained
+    #  by looking for 'pattern' in 'string' and replace it by 'repl'.
+    # re.sub(pattern, repl, string, count=0, flags=0)
+    # lambda is used in python to create anonymous functions. The equivalence is:
+    # def function(N): return f(N)  -->  lambda N: f(N)
+
+    tmp=re.sub(trigrams, lambda match: match.group(0).replace(u' ', u'_'), text.lower())
+    newtext=re.sub(bigrams, lambda match: match.group(0).replace(u' ', u'_'), tmp)
+
+    return newtext
 
 def main():
     args = parser.parse_args()
@@ -90,6 +141,7 @@ def main():
 
 
     # We generate a random sample of the entries.
+    random.seed(123)
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
 
     texts=[]
@@ -103,22 +155,8 @@ def main():
     # Join all the text into a string to be able to count the frequency of ocurrence
     raw=" ".join(texts)
 
-    # Additional stopwords found in the results
-    add_stopwords=['http','https','www','com','href','nbsp','arial','helvetica',
-                   'font','verdana','sans','serif','fri','sat','font','bgcolor','ffffff',
-                   'tel','fax']
 
-    # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
-    tokens=[word for word in gensim.utils.tokenize(raw, lower=True)
-                if word not in STOPWORDS and len(word) > min_len if word not in add_stopwords]
-
-    # Find the collocations in our text based on the frequency they appear.
-    # Here is where all the magic happens :-)
-    best_ngrams(tokens, top_n=n_col, min_freq=freq)
-
-    # Naive version of the code
-    #text = nltk.Text(tokens)
-    #coll=text.collocations()
+    ngramsFinder(raw,freq, n_col,min_len)
 
     # Close all cursors
     connection.close()
