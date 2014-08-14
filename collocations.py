@@ -105,7 +105,7 @@ def main():
 
     # Additional stopwords found in the results
     add_stopwords=['http','https','www','com','href','nbsp','arial','helvetica',
-                   'font','verdana','fri','sat','font','bgcolor','ffffff',
+                   'font','verdana','sans','serif','fri','sat','font','bgcolor','ffffff',
                    'tel','fax']
 
     # Tokenize the text eliminating non alphanumeric characters, stopwords and also words of length <= 3
