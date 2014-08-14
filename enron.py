@@ -43,6 +43,7 @@ def querySample(N, return_sample = False):
 
     # We generate a random sample of the entries.
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
+    print "{0}% sample ({1} emails) extracted at random".format(N*100.,int(math.floor(size[0]*N)))
     texts=[]
 
     # We query the emails in the sample and store them in a list
