@@ -4,6 +4,8 @@
 
 import MySQLdb as mdb
 from nltk.corpus import stopwords
+import random
+import math
 
 def getCustomStopwords(filename='add_stopwords.txt'):
 
@@ -34,6 +36,10 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
 
 def querySample(N):
     con, cur=connectDB("enron")
+
+    cur.execute("select id from emails order by id desc limit 1;")
+    res = cur.fetchall()
+    size=[int(col) for row in res for col in row]
 
     # We generate a random sample of the entries.
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
