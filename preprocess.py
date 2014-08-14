@@ -60,6 +60,9 @@ def main():
     f.writelines(["%s\n" % item  for item in tokenizedtext])
     f.close()
 
+    # Close all cursors
+    connection.close()
+
 if __name__ == "__main__":
 main()
 
