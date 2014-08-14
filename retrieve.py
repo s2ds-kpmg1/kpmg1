@@ -29,17 +29,31 @@ import MySQLdb as mdb
 
 #args = vars(parser.parse_args())
 
-
-
 def retrieve():
     """Retrieve an entry from the MySQL database."""
-    con = mdb.connect('localhost', 'testuser', 'test623', 'testdb');
+    con = mdb.connect('localhost', 'kpmg1', 's2ds', 'enron');
     with con:
         cur = con.cursor()
         #cur.execute("SELECT * FROM `Metadata`")
-        cur.execute("SELECT `Subject` FROM `Metadata`")
-        row = cur.fetchall()
-        #row = cur.fetchone()
+        
+    # TABLES['emails'] = (\
+    #     "CREATE TABLE `emails` (\
+    #       `id` INT NOT NULL AUTO_INCREMENT,\
+    #       `sender` varchar(500) NOT NULL,\
+    #       `to` longtext NOT NULL,\
+    #       `subject` varchar(500), \
+    #       `date` datetime NOT NULL,\
+    #       `cc` longtext,\
+    #       `bcc` longtext,\
+    #       `rawtext` longtext NOT NULL,\
+    #       `text` longtext NOT NULL,\
+    #       `fileloc` varchar(1000) NOT NULL,\
+    #       PRIMARY KEY (id)\
+    #     ) ENGINE=InnoDB;")
+
+        cur.execute("SELECT `sender` FROM `emails`")
+        #row = cur.fetchall()
+        row = cur.fetchone()
     return row
     con.close()
 
