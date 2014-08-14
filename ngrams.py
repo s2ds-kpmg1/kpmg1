@@ -3,9 +3,16 @@ __author__ = 'elenagr'
 """
 
 This file contains 3 functions:
-best_ngrams(words, top_n, min_freq)
-ngramsText(text,n,file1,file2=None)
-ngramsFinder(text,min_freq,num_col,word_len)
+
+best_ngrams(words, top_n, min_freq) -->
+Computes best ngrams from an input text
+
+ngramsText(text,n,file1,file2=None) -->
+Returns a text where the ngrams read from
+an external file are joined as a single token
+
+ngramsFinder(text,min_freq,num_col,word_len) -->
+Writes to a file the ngrams found in an input text.
 
 """
 import logging
