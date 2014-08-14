@@ -3,6 +3,34 @@
 """Functions we might find useful"""
 
 import MySQLdb as mdb
+from nltk.corpus import stopwords
+
+def getCustomStopwords(filename='add_stopwords.txt'):
+
+    """Returns the full list, plus our new list of stopwords"""
+
+    stopwords = stopwords.words('english')
+
+    with open(filename, 'r') as f:
+
+        new = f.readlines()
+
+    new = [unicode(n.strip()) for n in new]
+
+    updated = stopwords + new
+
+    return updated
+
+def addToStopwords(word, filename = 'add_stopwords.txt'):
+
+    """Add single word to stopwords file"""
+
+    with open(filename, 'a') as f:
+        f.write(unicode(word+'\n'))
+
+    return
+
+
 
 def querySample(N):
     con, cur=connectDB("enron")
