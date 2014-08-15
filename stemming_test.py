@@ -36,7 +36,7 @@ def getFunctionName(fstring):
 
 def cleanTokens(tokens,minlen=2):
     output=[]
-    disallowedchar=set(["!","?",'"',"'",",",".",":",";","-"])
+    disallowedchar=set(["!","?",'"',"'",",",".",":",";","-","<",">", "/","="])
 
     for i in tokens:
         if ((len(set(i).intersection(disallowedchar)) == 0) and 
@@ -82,7 +82,7 @@ def main():
     				["nltk", "g = q.stem.snowball.EnglishStemmer()", "stem"],
     				["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
     				["nltk", "g = q.stem.lancaster.LancasterStemmer()", "stem"],
-    				["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
+    	       		["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
     				["gensim", "g = q.utils", "lemmatize"]
     ]
 
@@ -123,10 +123,23 @@ def main():
 
 
 
-    token_args = [text,text, text]
-    token_kwargs = [{}, {}, {}]
+    token_args = [
+                text,
+                text, 
+                text
+                ]
+    token_kwargs = [
+                {},
+                {},
+                {}
+                ]
     
-    stem_kwargs = [{}, {}, {}, {}, {}]
+    stem_kwargs = [
+                {}, 
+                {}, 
+                {}, 
+                {}, 
+                {}]
     
     #loop over each version
 
