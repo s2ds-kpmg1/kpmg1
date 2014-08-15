@@ -117,7 +117,7 @@ def main():
         if os.path.exists("ngrams_found.txt"):
             os.remove("ngrams_found.txt")
         print "Joining ngrams..."
-        text=words.ngramsText(text,3,"bigrams.txt","trigrams.txt")å
+        text=words.ngramsText(text,3,"bigrams.txt","trigrams.txt")
 
 
 
