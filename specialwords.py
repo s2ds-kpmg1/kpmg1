@@ -38,7 +38,7 @@ logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
 
 
-def abbreviations(text,fname,id=id):
+def abbreviations(text,fname,id=None):
 
     """
     This function looks for phrases given in a dictionary (file) and replace them by their abbreviations
@@ -70,6 +70,7 @@ def ngramsText(text,n,file1,file2=None,id=None):
     and file2(trigrams) using underscores. In this way the tokenizer will consider them a single token.
     The argument n controls if only bigrams are to be found or also trigrams are expected.
     It returns the processed text.
+    Remove the file "ngrams_found.csv"
 
     """
     #Open output file
@@ -77,7 +78,7 @@ def ngramsText(text,n,file1,file2=None,id=None):
 
     if n == 3:
 
-        print "Reading trigrams..."
+       # print "Reading trigrams..."
         with open(file2) as f1:
             trigrams = f1.readlines()
             trigrams=[t.strip('\n') for t in trigrams]
@@ -89,7 +90,7 @@ def ngramsText(text,n,file1,file2=None,id=None):
             outfile.writelines("{0} ; {1} \n".format(id,itemst))
     if n == 2 or n == 3:
 
-        print "Reading bigrams..."
+        #print "Reading bigrams..."
         with open(file1) as f1:
             bigrams = f1.readlines()
             bigrams=[b.strip('\n') for b in bigrams]
