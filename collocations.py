@@ -8,11 +8,15 @@ Usage:
 python collocations --sample 0.5 --min_freq 1000 --max_col 1000 --word_len 3
 """
 import logging
+import csv
+import re
+import os
 import argparse
 import math
 import random
 import MySQLdb as mdb
 import ngrams
+#from ngrams import abb_dictionary
 
 logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
