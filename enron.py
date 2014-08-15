@@ -34,7 +34,7 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
 
 
 
-def querySample(N, return_sample = False):
+def querySample(N, seed=False, return_sample = False):
     con, cur=connectDB("enron")
 
     cur.execute("select id from emails order by id desc limit 1;")
@@ -42,6 +42,9 @@ def querySample(N, return_sample = False):
     size=[int(col) for row in res for col in row]
 
     # We generate a random sample of the entries.
+    if seed != False:
+        random.seed(seed)
+
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
     texts=[]
 
