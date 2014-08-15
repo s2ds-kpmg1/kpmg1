@@ -4,9 +4,6 @@ __author__ = 'elenagr'
 
 This file contains the following functions:
 
-add_stopwords(file)
-Reads the stopwords in file and returns a list
-
 abbreviations(file)
 Replace the words of the dictionary found in text by the abbreviations.
 Don't forget to remove the file called "word_replace_dic.txt" otherwise
