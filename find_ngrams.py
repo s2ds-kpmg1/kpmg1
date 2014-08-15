@@ -8,11 +8,14 @@ Usage:
 python collocations --sample 0.5 --min_freq 1000 --max_col 1000 --word_len 3
 """
 import logging
+
 import argparse
 import math
 import random
 import MySQLdb as mdb
-import ngrams
+import specialwords as words
+
+#from ngrams import abb_dictionary
 
 logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
@@ -64,7 +67,8 @@ def main():
     # Join all the text into a string to be able to count the frequency of ocurrence
     raw=" ".join(texts)
 
-    ngrams.ngramsFinder(raw,freq, n_col,min_len)
+    # Call a function written in specialwords
+    words.ngramsFinder(raw,freq, n_col,min_len)
 
     # Close all cursors
     connection.close()
