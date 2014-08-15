@@ -146,8 +146,9 @@ def ngramsFinder(text,min_freq,num_col,word_len):
 def best_ngrams(words, top_n, min_freq):
 
     """
-    This function has been extracted from a tutorial given in Europython 2014 about
-    topic modelling given by Radim Rehurek
+    This function has been extracted from an Europython 2014 tutorial about
+    topic modelling given by Radim Rehurek and modified for this particular project.
+
     Extract `top_n` most salient collocations (bigrams and trigrams),
     from a stream of words. Ignore collocations with frequency
     lower than `min_freq`.
