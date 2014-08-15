@@ -11,7 +11,7 @@ def getCustomStopwords(filename='add_stopwords.txt'):
 
     """Returns the full list, plus our new list of stopwords"""
 
-    stopwords = stopwords.words('english')
+    swords = stopwords.words('english')
 
     with open(filename, 'r') as f:
 
@@ -19,7 +19,7 @@ def getCustomStopwords(filename='add_stopwords.txt'):
 
     new = [unicode(n.strip()) for n in new]
 
-    updated = stopwords + new
+    updated = swords + new
 
     return updated
 

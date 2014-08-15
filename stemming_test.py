@@ -53,7 +53,8 @@ parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings
 
 def main():
 
-    stop_words = stopwords.words('english')
+    stop_words = enron.getCustomStopwords()
+
 
     args = parser.parse_args()
 
