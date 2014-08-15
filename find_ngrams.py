@@ -13,7 +13,7 @@ import argparse
 import math
 import random
 import MySQLdb as mdb
-import special_words as sw
+import specialwords as words
 
 #from ngrams import abb_dictionary
 
@@ -67,7 +67,8 @@ def main():
     # Join all the text into a string to be able to count the frequency of ocurrence
     raw=" ".join(texts)
 
-    sw.ngramsFinder(raw,freq, n_col,min_len)
+    # Call a function written in specialwords
+    words.ngramsFinder(raw,freq, n_col,min_len)
 
     # Close all cursors
     connection.close()
