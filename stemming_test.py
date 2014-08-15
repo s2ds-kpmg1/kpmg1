@@ -127,6 +127,8 @@ def main():
             #tokenising complete
 
             text_token = cleanTokens(text_token)
+
+            text_token = [x for x in text_token if x not in stop_words]
     
             q = __import__(scommand[0])
             exec scommand[1]
@@ -142,7 +144,7 @@ def main():
             	text_stem = [getattr(g, scommand[2])(word) for word in text_token]
     
     
-            text_stem = [x for x in text_stem if x not in stop_words]
+            
     
             end_code = time.time()
 
