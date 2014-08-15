@@ -20,9 +20,11 @@ from nltk.corpus import stopwords
 import MySQLdb as mdb
 import enron
 import pdb
+import os
 import csv
 import time
 import argparse
+import specialwords as words
 
 def getFunctionName(fstring):
 
@@ -47,6 +49,8 @@ def cleanTokens(tokens,minlen=2):
 parser = argparse.ArgumentParser(description="Testing the different tokenisation/stemming methods")
 parser.add_argument('-f', '--fraction', help = 'Fraction of sample required', required = True, type=float)
 parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings', default = 'timings.log', type = str)
+parser.add_argument('-n', '--ngrams', help='Remove ngrams', default = False, action = 'store_true')
+parser.add_argument('-a', '--abbrev', help='Replace abbreviations', default = False, action = 'store_true')
 
 
 
@@ -96,14 +100,37 @@ def main():
     text = [t.lower() for t in text]
 
     text = ' '.join(text)
-    
+
+    if (args.abbrev == True):
+
+        if os.path.exists("word_replace_dic.txt"):
+            os.remove("word_replace_dic.txt")
+
+        print "Replacing technical terms..."
+        text=words.abbreviations(text,"dic_enron.csv")
+
+
+
+
+    if (args.ngrams == True):
+
+        if os.path.exists("ngrams_found.txt"):
+            os.remove("ngrams_found.txt")
+        print "Joining ngrams..."
+        text=words.ngramsText(text,3,"bigrams.txt","trigrams.txt")å
+
+
+
+
+
     token_args = [text,text, text]
     token_kwargs = [{}, {}, {}]
     
     stem_kwargs = [{}, {}, {}, {}, {}]
     
     #loop over each version
-    
+
+
     for (tcommand, targ, tkwarg) in zip(token_command, token_args, token_kwargs):
     
 
