@@ -85,7 +85,7 @@ def ngramsText(text,n,file1,file2=None,id=None):
             trigrams = f1.readlines()
             trigrams=[t.strip('\n') for t in trigrams]
             f1.closed
-            print trigrams
+
         for item in trigrams:
             itemst=str(item).lower()
             text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
@@ -106,7 +106,6 @@ def ngramsText(text,n,file1,file2=None,id=None):
             elif n == 2:
                 text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
                 outfile.writelines("{0} ; {1} \n".format(id,itemst))
-        print text
 
     else:
         print "Please insert the correct argument:\n 2 for bigrams \n 3 for bigrams and trigrams\n"
