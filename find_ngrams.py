@@ -5,7 +5,7 @@ This function computes the ngrams of a random sample of emails from the database
 a/two file/s with the results (bigrams.txt and/or trigrams.txt)
 
 Usage:
-python collocations --sample 0.5 --min_freq 1000 --max_col 1000 --word_len 3
+python collocations --sample 0.5 --min_freq 1000 --max_ngrams 1000 --word_len 3
 """
 import logging
 
@@ -23,7 +23,7 @@ logging.root.level = logging.INFO  # ipython sometimes messes up the logging set
 parser = argparse.ArgumentParser(description="Generating a dictionary of stopwords")
 parser.add_argument("--sample",help="Size of sample in percentage", required=True,type=float)
 parser.add_argument("--min_freq",help="Minimal frequency of ocurrence to be considered",required=True,type=int)
-parser.add_argument("--max_col",help="Maximal number of collocations to be found",required=True,type=int)
+parser.add_argument("--max_ngrams",help="Maximal number of collocations to be found",required=True,type=int)
 parser.add_argument("--word_len",help="Minimal word length to be considered",required=True,type=int)
 
 
@@ -31,7 +31,7 @@ def main():
     args = parser.parse_args()
     N = args.sample
     freq = args.min_freq
-    n_col = args.max_col
+    n_col = args.max_ngrams
     min_len = args.word_len
 
     print ("Sample Size: {0}*total").format(N)
@@ -53,7 +53,7 @@ def main():
 
 
     # We generate a random sample of the entries.
-    random.seed(123)
+    #random.seed(123)
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
 
     texts=[]

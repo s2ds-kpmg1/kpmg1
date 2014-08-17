@@ -1,7 +1,6 @@
 __author__ = 'elenagr'
 
 """
-
 This file contains the following functions:
 
 abbreviations(file)
@@ -64,7 +63,7 @@ def abbreviations(text,fname,id=None):
     return text
 
 
-def ngramsText(text,n,file1,file2=None,id=None):
+def ngramsText(text,N,file1,file2,id=None):
     """
     This function takes a raw text and joins the trigrams and/or bigrams stored in file1(bigrams)
     and file2(trigrams) using underscores. In this way the tokenizer will consider them a single token.
@@ -76,9 +75,9 @@ def ngramsText(text,n,file1,file2=None,id=None):
     #Open output file
     outfile = open('ngrams_found.csv', 'a+')
 
-    if n == 3:
+    if N == 3:
 
-       # print "Reading trigrams..."
+        #print "Reading trigrams..."
         with open(file2) as f1:
             trigrams = f1.readlines()
             trigrams=[t.strip('\n') for t in trigrams]
@@ -86,9 +85,11 @@ def ngramsText(text,n,file1,file2=None,id=None):
 
         for item in trigrams:
             itemst=str(item).lower()
-            text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
-            outfile.writelines("{0} ; {1} \n".format(id,itemst))
-    if n == 2 or n == 3:
+            if itemst in text.lower():
+                text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
+                outfile.writelines("{0} ; {1} \n".format(id,itemst))
+
+    if N == 2 or N == 3:
 
         #print "Reading bigrams..."
         with open(file1) as f1:
@@ -98,12 +99,16 @@ def ngramsText(text,n,file1,file2=None,id=None):
 
         for item in bigrams:
             itemst=str(item).lower()
-            if n == 3:
-                text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
-                outfile.writelines("{0} ; {1} \n".format(id,itemst))
-            elif n == 2:
-                text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
-                outfile.writelines("{0} ; {1} \n".format(id,itemst))
+            if N == 3:
+                if itemst in text.lower():
+                    text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
+                    outfile.writelines("{0} ; {1} \n".format(id,itemst))
+
+            elif N == 2:
+                if itemst in text.lower():
+                    text=re.sub(itemst,itemst.replace(' ','_'), text.lower())
+                    outfile.writelines("{0} ; {1} \n".format(id,itemst))
+
 
     else:
         print "Please insert the correct argument:\n 2 for bigrams \n 3 for bigrams and trigrams\n"
