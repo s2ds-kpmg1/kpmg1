@@ -70,6 +70,7 @@ def main():
 
     start_code = time.time()
 
+
     # Open the connection to the DB
     connection = mdb.connect('localhost', 'kpmg1', 's2ds','enron')
     cur=connection.cursor()
