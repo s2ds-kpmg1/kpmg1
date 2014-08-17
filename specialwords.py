@@ -1,7 +1,6 @@
 __author__ = 'elenagr'
 
 """
-
 This file contains the following functions:
 
 abbreviations(file)
