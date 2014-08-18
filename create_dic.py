@@ -2,7 +2,6 @@ __author__ = 'elenagr'
 
 import os
 import re
-import math
 import time
 import MySQLdb as mdb
 import specialwords as words
@@ -38,8 +37,21 @@ def stemmingListofStrings(textsid):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    texts = [re.sub('[+=!-*@#$<>.,;:?!-\(\)/"\'\[\]]', '', text) for text in texts]
+    texts = [re.sub(r'[\w\.-]+@+[\w\.-]+]','', text)  for text in texts ]
     texts = [text.translate(None, digits) for text in texts]
+    texts = [re.sub(r'(.)\1{2}', r'', text) for text in texts]
+    texts = [re.sub('[\^~+=!-*@#$<>.,;:?|!\-\(\)/"\'\[\]]', '', text.replace('\\','')) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*enroncom\b",'',text.lower())for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*houect\b",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*ectect\b",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*houeese\b",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*hotmailcom\b",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*enronenron[0-9,a-z]*",'',text) for text in texts]
+    texts = [re.sub(r"http[0-9,a-z]*com",'',text) for text in texts]
+    texts = [re.sub('requestrequest','request',text) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*developmentenron_develop[0-9,a-z]*",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*_communicationsenron_0-9,a-z]*",'',text.lower()) for text in texts]
+    texts = [re.sub(r"[0-9,a-z]*html\b",'',text.lower()) for text in texts]
 
     textsid = zip(ids, texts)
 
@@ -78,8 +90,22 @@ def stemmingString(text, id):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    text = re.sub('[+=!-*@#$<>.,;:?!-\(\)/"\'\[\]]', '', text)
     text = text.translate(None, digits)
+    # Remove all characters repeated more than twice in a row
+    text = re.sub(r'(.)\1{2}', r'', text)
+    text = re.sub('[\^~+=!-*@#$<>.,;:?!|\-\(\)/"\'\[\]]', '', text.replace('\\',''))
+    text = re.sub(r"[0-9,a-z]*enroncom\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*houect\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*ectect\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*hotmailcom\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*html\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*enronenron[0-9,a-z]*",'',text.lower())
+    text = re.sub(r"http[0-9,a-z]*com",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*com",'',text.lower())
+    text = re.sub('requestrequest','request',text.lower())
+    text = re.sub(r"[0-9,a-z]*houeese\b",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*developmentenron_develop[0-9,a-z]*",'',text.lower())
+    text = re.sub(r"[0-9,a-z]*_communicationsenron_0-9,a-z]*",'',text.lower())
 
     # Replace any found term in the dictionary by its abbreviation
     text = words.abbreviations(text.lower(), "dic_enron.csv", id)
@@ -201,7 +227,7 @@ def main():
         outfrqs.writelines("{0}; {1}\n".format(id, [frq for idw, frq in mytext]))
 
         # Save dictionary once in a while to make sure we don't loose everything if some error ocurrs
-        if id % 1000 == 0:
+        if id % 100 == 0 or id == (size[0]-1):
             dictionary.save_as_text("dictionary_words.txt", sort_by_word=True)
             dictionary.save_as_text("dictionary_freq.txt", sort_by_word=False)
             print 'Dictionary saved until id = {0}'.format(id)
