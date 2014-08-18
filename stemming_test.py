@@ -87,7 +87,7 @@ def main():
     ]
 
     print 'Getting Text'
-    text, email_ids = enron.querySample(args.fraction,seed=123, return_sample = True)
+    text, email_ids = enron.querySample(args.fraction, return_sample = True)
 
     with open('email_sample.log', 'w') as elog:
 
