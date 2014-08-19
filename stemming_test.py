@@ -87,6 +87,10 @@ def main():
     ]
 
     print 'Getting Text'
+<<<<<<< HEAD
+=======
+    text, email_ids = enron.querySample(args.fraction, return_sample = True)
+>>>>>>> a2785f775476963792c72436b67a70e163730717
 
     #Either get text as new random sample, or use existing list
 

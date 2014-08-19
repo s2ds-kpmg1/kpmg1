@@ -1,101 +1,49 @@
 __author__ = 'elenagr'
 
 import os
-import re
-import math
 import time
 import MySQLdb as mdb
-import specialwords as words
-import scrubbing as scrub
 from gensim import corpora
-import nltk
-import enron
-from string import digits
 import argparse
+import enron
+import stemming as stem
+
 from collections import Counter
 
-parser = argparse.ArgumentParser(description="Generating a dictionary of stopwords")
-parser.add_argument('-N', '--Ndic', help = 'Number of texts considered for initial dictionary',
-                    required = True, type=int)
-parser.add_argument('-dic', '--initialize', help='initialize dictionary', default=False, action='store_true')
-parser.add_argument('--append', help='append word mapping to existing file', default=False,
-                    action='store_true')
 
-def stemmingListofStrings(textsid):
+
+def customizeDic(freq):
+
     """
-    This function takes a list of tuples (id,text) and returns the text after cleaning, tokenizer and stemming
-    :param textsid: list of tuples with raw text (id,text)
-    :return: returns the stemmed text as a list of tuples (id,stem_text)
+    This function loads an existing dictionary called "dictionary_freq.txt" and reduces its
+    vocabulary by ignoring the stopwords and least frequent words (given by the lowest frequency parameter freq)
+    :param freq: lowest number of documents where the word was found
+    :return: returns the new reduced dictionary
     """
 
-    texts = [text for id, text in textsid]
-    ids = [id for id, text in textsid]
+    # Load the stopwords list
+    stoplist = enron.getCustomStopwords()
 
-    # Initialize the stemmer snowball
-    stem = nltk.stem.snowball.EnglishStemmer()
+    # Load dictionary
+    dic=corpora.Dictionary.load_from_text("dictionary_freq.txt")
 
-    #Initialize the stop words
-    stop_words = enron.getCustomStopwords()
+    # Create a list with the words that appear in less than N documents given by freq
+    once_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq <= freq]
 
-    # Clean the text eliminating symbols and numbers
-    texts = [re.sub('[+=!-*@#$<>.,;:?!-\(\)/"\'\[\]]', '', text) for text in texts]
-    texts = [text.translate(None, digits) for text in texts]
+    # Create a list with the ids of the words in the stopwords list
+    stop_ids = [dic.token2id[stopword] for stopword in stoplist
+                if stopword in dic.token2id]
 
-    textsid = zip(ids, texts)
+    # Eliminate non desired entries in our dictionary
+    dic.filter_tokens(once_ids + stop_ids)
 
-    # Replace any found term in the dictionary by its abbreviation
-    texts = [words.abbreviations(text.lower(), "dic_enron.csv", id) for id, text in textsid]
+    # Assign new ids to the remaining words to adjust for the reduced vocabulary
+    dic.compactify()
 
-    textsid = zip(ids, texts)
+    # Save the new dictionary for reference
+    dic.save_as_text("new_dic.txt")
 
-    # Joins any ngrams found in the given files
-    texts = [words.ngramsText(text.lower(), 3, "bigrams.txt", "trigrams.txt", id) for id, text in textsid]
-
-    # Tokenize the texts and eliminates stopwords and all words with length < 2
-    texts_token = [scrub.tokenizeString(text, lower=True, tokenizer="punktword") for text in texts]
-    texts_token = [[x for x in text_token if x not in stop_words and len(x) > 1] for text_token in texts_token]
-
-    # Apply stemming
-    texts_stem = [[stem.stem(word) for word in text_token] for text_token in texts_token]
-
-    textsid = zip(ids, texts_stem)
-
-    return textsid
-
-
-def stemmingString(text, id):
-    """
-    This function takes a text and an id and returns the text after cleaning, tokenizer and stemming
-    :param text: raw text
-    :param id: id of the text
-    :return: returns the stemmed text
-    """
-
-    # Initialize the stemmer snowball
-    stem = nltk.stem.snowball.EnglishStemmer()
-
-    #Initialize the stop words
-    stop_words = enron.getCustomStopwords()
-
-    # Clean the text eliminating symbols and numbers
-    text = re.sub('[+=!-*@#$<>.,;:?!-\(\)/"\'\[\]]', '', text)
-    text = text.translate(None, digits)
-
-    # Replace any found term in the dictionary by its abbreviation
-    text = words.abbreviations(text.lower(), "dic_enron.csv", id)
-
-    # Joins any ngrams found in the given files
-    text = words.ngramsText(text.lower(), 3, "bigrams.txt", "trigrams.txt", id)
-
-    # Tokenize the texts and eliminates stopwords and all words with length < 2
-    text_token = scrub.tokenizeString(text, lower=True, tokenizer="punktword")
-    text_token = [x for x in text_token if x not in stop_words and len(x) > 1]
-
-    # Apply stemming
-    text_stem = [stem.stem(word) for word in text_token]
-
-    return text_stem
-
+    return dic
 
 def initializeDic(N):
     """
@@ -123,13 +71,21 @@ def initializeDic(N):
     texts_id = zip(ids, texts)
 
     # Apply stemming to the given text
-    texts_stem = stemmingListofStrings(texts_id)
+    texts_stem = stem.stemmingListofStrings(texts_id)
     texts_stem = [text for id, text in texts_stem]
 
     # Builds a dictionary based on the words found in the given texts
     dictionary = corpora.Dictionary(texts_stem)
 
     return dictionary
+
+
+parser = argparse.ArgumentParser(description="Generating a dictionary")
+parser.add_argument('-N', '--Ndic', help = 'Number of texts considered for initial dictionary',
+                    required = True, type=int)
+parser.add_argument('-dic', '--initialize', help='initialize dictionary', default=False, action='store_true')
+parser.add_argument('--append', help='append word mapping to existing file', default=False,
+                    action='store_true')
 
 
 def main():
@@ -184,10 +140,10 @@ def main():
     outids = open('map_words.txt', 'a+')
 
     # Here we go: construct the dictionary and the word-frequency mapping for each email
-    for id in range(1, size[0]):
+    for id in range(1, 11):
         cur.execute(" select text from emails where id = {0} ".format(id))
         tmp = cur.fetchall()
-        text_stem = stemmingString(tmp[0][0], id)
+        text_stem = stem.stemmingString(tmp[0][0], id)
         # We don't want to count twice the emails already consider in the dictionary. We set the
         # update to false for the emails used to build the dictionary
         if id <= N:
@@ -201,7 +157,7 @@ def main():
         outfrqs.writelines("{0}; {1}\n".format(id, [frq for idw, frq in mytext]))
 
         # Save dictionary once in a while to make sure we don't loose everything if some error ocurrs
-        if id % 1000 == 0:
+        if id % 1 == 0 or id == (size[0]-1):
             dictionary.save_as_text("dictionary_words.txt", sort_by_word=True)
             dictionary.save_as_text("dictionary_freq.txt", sort_by_word=False)
             print 'Dictionary saved until id = {0}'.format(id)
