@@ -7,6 +7,7 @@ from nltk.corpus import stopwords
 import random
 import math
 
+
 def stripCharacters(string, backslash_char = True):
 
     """Strips the weird non-unicode characters that appear in the odd email"""
@@ -25,11 +26,11 @@ def stripCharacters(string, backslash_char = True):
 def cleanString(textstring):
 
 
-        textstring = textstring.lower()
+    textstring = textstring.lower()
 
     #first remove all the \n and unicode remnants
 
-    textstring = createdb.stripCharacters(textstring)
+    textstring = stripCharacters(textstring)
 
 
     match = re.search(r'Original Message', textstring)
