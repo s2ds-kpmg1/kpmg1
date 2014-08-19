@@ -6,6 +6,7 @@ import MySQLdb as mdb
 from nltk.corpus import stopwords
 import random
 import math
+import re
 
 
 def stripCharacters(string, backslash_char = True):

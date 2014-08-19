@@ -30,7 +30,7 @@ def ultraClean(textstring):
 
     #first remove all the \n and unicode remnants
 
-    textstring = createdb.stripCharacters(textstring)
+    textstring = enron.stripCharacters(textstring)
 
 
     match = re.search(r'Original Message', textstring)
