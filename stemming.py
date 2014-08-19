@@ -25,7 +25,7 @@ def stemmingListofStrings(textsid):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    # texts = [text.translate(None, digits) for text in texts]
+    texts = [text.translate(None, digits) for text in texts]
     # texts = [re.sub(r'(.)\1{2}', r'', text) for text in texts]
     # texts = [re.sub('[\^~+=!-*@#$<>.,;:?|!\-\(\)/"\'\[\]]', '', text.replace('\\','')) for text in texts]
 
@@ -66,7 +66,7 @@ def stemmingString(text, id):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    # text = text.translate(None, digits)
+    text = text.translate(None, digits)
     # text = re.sub(r'(.)\1{2}', r'', text)
     # text = re.sub('[\^~+=!-*@#$<>.,;:?!|\-\(\)/"\'\[\]]', '', text.replace('\\',''))
 
