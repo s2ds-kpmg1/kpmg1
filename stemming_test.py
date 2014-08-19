@@ -13,7 +13,7 @@ python stemming_test.py -f 0.01 [-o mytimingsoutput.log]
 """
 
 
-
+import os, shutil
 import gensim
 import nltk
 from nltk.corpus import stopwords
@@ -56,6 +56,17 @@ parser.add_argument('-e', '--email_list', help = 'Use existing email log', type 
 
 
 def main():
+
+    rootdir=os.getcwd()
+    foldername='output'
+    folderpath=os.path.join(rootdir,foldername)
+    if (os.path.exists(folderpath)==True):
+        shutil.rmtree(folderpath)
+        os.makedirs(folderpath)
+    else:
+        os.makedirs(folderpath)
+
+    os.chdir(folderpath)
 
     stop_words = enron.getCustomStopwords()
 
@@ -254,6 +265,8 @@ def main():
             timinglog.write("{0}.{1}\t{2}.{3}\t{4}\t{5}\n".format(n1, n2, n3, n4, codetime, writetime))
 
     timinglog.close()
+
+    os.chdir(rootdir)
 
 if __name__ == '__main__':
     main()
