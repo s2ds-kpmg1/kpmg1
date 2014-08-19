@@ -33,6 +33,14 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
     return
 
 
+def queryDb(table, column, criteria):
+    con, cur=enron.connectDB("enron")
+    cur.execute("select {0} from {1} where {2} ".format(column,table,criteria))
+    tmp=cur.fetchall()
+    results=tmp
+    con.close()
+    return results
+
 
 def querySample(N, return_sample = False):
     con, cur=connectDB("enron")
