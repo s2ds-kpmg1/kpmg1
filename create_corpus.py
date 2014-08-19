@@ -8,7 +8,24 @@ import enron
 import create_dic as dic
 import argparse
 import stemming as stem
+import enron
 
+
+class MyCorpus(object):
+    def __iter__(self):
+        try:
+            connection = mdb.connect('localhost', 'kpmg1', 's2ds', 'enron')
+            cur = connection.cursor()
+            cur.execute("select id from emails order by id desc limit 1;")
+            res = cur.fetchall()
+            size = [int(col) for row in res for col in row]
+            for i in range(1,size[0]):
+                command="""'emails','text','id = {0}'""".format(i)
+                text = enron.queryDb(command)[0][0]
+                text_stem = stem.stemmingString(text, id)
+                yield dictionary.doc2bow(text_stem, allow_update=False)
+        finally:
+            connection.close()
 
 def main():
 
@@ -28,19 +45,14 @@ def main():
     res = cur.fetchall()
     size = [int(col) for row in res for col in row]
 
-    corpus=[]
-
     print "Creating corpus..."
 
-    for id in range(1, 101):
-        cur.execute(" select text from emails where id = {0} ".format(id))
-        tmp = cur.fetchall()
-        text_stem = stem.stemmingString(tmp[0][0], id)
-        corpus.append(dictionary.doc2bow(text_stem, allow_update=False))
-        print id
+    corpus=MyCorpus()
 
     outfile.write("{0}".format(corpus))
     corpora.mmcorpus.MmCorpus.serialize('corpus.mm', corpus)
+
+    connection.close()
 
 if __name__ == '__main__':
     main()

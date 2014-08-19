@@ -145,6 +145,8 @@ def main():
             dictionary.save_as_text("dictionary_freq.txt", sort_by_word=False)
             print 'Dictionary saved until id = {0}'.format(id)
 
+    connection.close()
+
     end_code = time.time()
 
     codetime = end_code - start_code
