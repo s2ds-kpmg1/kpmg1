@@ -87,6 +87,7 @@ parser.add_argument('--append', help='append word mapping to existing file', def
                     action='store_true')
 
 
+
 def main():
     """
     This function generates a dictionary (map id<-> word) based on the texts saved in the enron database
