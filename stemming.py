@@ -25,9 +25,9 @@ def stemmingListofStrings(textsid):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    texts = [text.translate(None, digits) for text in texts]
-    texts = [re.sub(r'(.)\1{2}', r'', text) for text in texts]
-    texts = [re.sub('[\^~+=!-*@#$<>.,;:?|!\-\(\)/"\'\[\]]', '', text.replace('\\','')) for text in texts]
+    # texts = [text.translate(None, digits) for text in texts]
+    # texts = [re.sub(r'(.)\1{2}', r'', text) for text in texts]
+    # texts = [re.sub('[\^~+=!-*@#$<>.,;:?|!\-\(\)/"\'\[\]]', '', text.replace('\\','')) for text in texts]
 
     textsid = zip(ids, texts)
 
@@ -66,9 +66,9 @@ def stemmingString(text, id):
     stop_words = enron.getCustomStopwords()
 
     # Clean the text eliminating symbols and numbers
-    text = text.translate(None, digits)
-    text = re.sub(r'(.)\1{2}', r'', text)
-    text = re.sub('[\^~+=!-*@#$<>.,;:?!|\-\(\)/"\'\[\]]', '', text.replace('\\',''))
+    # text = text.translate(None, digits)
+    # text = re.sub(r'(.)\1{2}', r'', text)
+    # text = re.sub('[\^~+=!-*@#$<>.,;:?!|\-\(\)/"\'\[\]]', '', text.replace('\\',''))
 
     # Replace any found term in the dictionary by its abbreviation
     text = words.abbreviations(text.lower(), "dic_enron.csv", id)

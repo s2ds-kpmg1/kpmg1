@@ -112,10 +112,6 @@ def main():
             os.remove("word_replace_dic.txt")
         if os.path.exists("ngrams_found.txt"):
             os.remove("ngrams_found.txt")
-        if os.path.exists("map_freqs.txt"):
-            os.remove("map_freqs.txt")
-        if os.path.exists("map_words.txt"):
-            os.remove("map_words.txt")
 
     # Open the connection to the DB
     connection = mdb.connect('localhost', 'kpmg1', 's2ds', 'enron')
@@ -135,28 +131,15 @@ def main():
     else:
         dictionary = corpora.Dictionary.load_from_text("dictionary_words.txt")
 
-    outfrqs = open('map_freqs.txt', 'a+')
-    outids = open('map_words.txt', 'a+')
-
     # Here we go: construct the dictionary and the word-frequency mapping for each email
-    for id in range(1, 11):
+    for id in range(N, size[0]):
         cur.execute(" select text from emails where id = {0} ".format(id))
         tmp = cur.fetchall()
         text_stem = stem.stemmingString(tmp[0][0], id)
-        # We don't want to count twice the emails already consider in the dictionary. We set the
-        # update to false for the emails used to build the dictionary
-        if id <= N:
-            mytext = dictionary.doc2bow(text_stem, allow_update=False)
-        #For the rest we update our dictionary with each new emails
-        else:
-            mytext = dictionary.doc2bow(text_stem, allow_update=True)
-
-        # Save to file the words and their frequency for each new text
-        outids.writelines("{0}; {1}\n".format(id, [idw for idw, frq in mytext]))
-        outfrqs.writelines("{0}; {1}\n".format(id, [frq for idw, frq in mytext]))
+        dictionary.doc2bow(text_stem, allow_update=True)
 
         # Save dictionary once in a while to make sure we don't loose everything if some error ocurrs
-        if id % 1 == 0 or id == (size[0]-1):
+        if id % 1000 == 0 or id == (size[0]-1):
             dictionary.save_as_text("dictionary_words.txt", sort_by_word=True)
             dictionary.save_as_text("dictionary_freq.txt", sort_by_word=False)
             print 'Dictionary saved until id = {0}'.format(id)
