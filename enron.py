@@ -120,6 +120,14 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
     return
 
 
+def queryDb(table, column, criteria):
+    con, cur=connectDB("enron")
+    cur.execute("select {0} from {1} where {2} ".format(column,table,criteria))
+    tmp=cur.fetchall()
+    results=tmp
+    con.close()
+    return results
+
 
 def querySample(N, seed=False, return_sample = False):
     con, cur=connectDB("enron")
@@ -133,6 +141,7 @@ def querySample(N, seed=False, return_sample = False):
         random.seed(seed)
 
     sample=random.sample(range(size[0]),int(math.floor(size[0]*N)))
+    print "{0}% sample ({1} emails) extracted at random".format(N*100.,int(math.floor(size[0]*N)))
     texts=[]
 
     # We query the emails in the sample and store them in a list
