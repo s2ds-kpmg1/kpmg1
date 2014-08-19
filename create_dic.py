@@ -11,7 +11,6 @@ import stemming as stem
 from collections import Counter
 
 
-
 def customizeDic(freq):
 
     """

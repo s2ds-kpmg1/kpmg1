@@ -1,16 +1,12 @@
 __author__ = 'elenagr'
 
-import os
+
 import re
-import time
-import MySQLdb as mdb
 import specialwords as words
 import scrubbing as scrub
-from gensim import corpora
 import nltk
 import enron
 from string import digits
-import argparse
 
 def stemmingListofStrings(textsid):
     """
