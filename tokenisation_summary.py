@@ -9,6 +9,8 @@ import glob
 from collections import Counter
 import os
 import cPickle as pickle
+import math
+import pdb
 
 parser = argparse.ArgumentParser(description='Run some tests on the output files from stemming_test.py')
 parser.add_argument('directory', help='Directory where you are keeping the files', type = str)
@@ -25,7 +27,7 @@ def main():
     if (args.directory[-1] != '/'): 
         args.directory = args.directory+'/'
 
-    findcsv = glob.glob('{0}*.csv'.format(args.directory))
+    findcsv = glob.glob('{0}testing_*.csv'.format(args.directory))
 
     print 'Found {0} files:'.format(len(findcsv))
 
@@ -50,18 +52,26 @@ def main():
 
         most_common = counter.most_common()[0:50]
 
-        all_common = dict((k,v) for k,v in counter.items() if v >=500)
+        all_common = dict((k,v) for k,v in counter.items() if v >=3000)
+
+        total_tokens  = len(data_unique)
+        
+        final_tokens = counter.most_common()[10:]
+        final_tokens2 = dict((k,v) for k,v in final_tokens if v >=10)
+
 
         print '************************************'
         print 'Tokeniser: {0}'.format(tokeniser)
         print 'Stemmer: {0}'.format(stemmer)
         print 'Token number: {0}'.format(len(data))
         print 'Unique tokens: {0}'.format(len(data_unique))
-        print '50 Most Common Words: '
-        print most_common
-        print 'All words > 500 frequency:'
-        print all_common
-        print ''
+        #print '50 Most Common Words: '
+        #print most_common
+        #print 'All words > 3000 frequency:'
+        #print all_common
+        #print ''
+        #print len(all_common)
+        print len(final_tokens2)
 
         results_dict[i]['tokeniser'] = tokeniser
         results_dict[i]['stemmer'] = stemmer
@@ -69,9 +79,11 @@ def main():
         results_dict[i]['unique'] = len(data_unique)
         results_dict[i]['most_common'] = most_common
         results_dict[i]['over_500'] = all_common
-
+        pdb.set_trace()
 
     print '************************************'
+
+
 
     if args.savepickle == True:
         with open('tokeniser_stats.pkl', 'wb') as output:

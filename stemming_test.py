@@ -51,7 +51,7 @@ parser.add_argument('-f', '--fraction', help = 'Fraction of sample required', re
 parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings', default = 'timings.log', type = str)
 parser.add_argument('-n', '--ngrams', help='Remove ngrams', default = False, action = 'store_true')
 parser.add_argument('-a', '--abbrev', help='Replace abbreviations', default = False, action = 'store_true')
-parser.add_argument('-e', '--email_list', help = 'Use existing email log', type = str)
+
 
 
 
@@ -72,74 +72,28 @@ def main():
 
 
     token_command = [
-    			#	["nltk", "f = p.tokenize.WordPunctTokenizer()", "tokenize"],
+    				["nltk", "f = p.tokenize.WordPunctTokenizer()", "tokenize"],
     				["nltk", "f = p.tokenize.PunktWordTokenizer()", "tokenize"],
-    			#	["gensim", "f = p.utils", "tokenize"]
+    				["gensim", "f = p.utils", "tokenize"]
 
     ]
     
     stem_command = [
     				["nltk", "g = q.stem.snowball.EnglishStemmer()", "stem"],
-    			#	["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
+    				["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
     				["nltk", "g = q.stem.lancaster.LancasterStemmer()", "stem"],
-    	       	#	["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
+    	       		["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
     				["gensim", "g = q.utils", "lemmatize"]
     ]
 
     print 'Getting Text'
-<<<<<<< HEAD
-    text, email_ids = enron.querySample(args.fraction, return_sample = True)
-=======
->>>>>>> upstream/master
+    text, email_ids = enron.querySample(args.fraction,seed=123, return_sample = True)
 
-    #Either get text as new random sample, or use existing list
+    with open('email_sample.log', 'w') as elog:
 
-    if (len(args.email_list)==0):
+        for id in email_ids:
 
-        print 'Creating random sample'
-
-        text, email_ids = enron.querySample(args.fraction, return_sample = True)
-
-        with open('email_sample.log', 'w') as elog:
-
-            for id in email_ids:
-
-                elog.write('{0}\n'.format(id))
-
-    else:
-
-        print 'Using existing sample ids'
-
-        with open(args.email_list, 'r') as einput:
-
-            email_sample = einput.readlines()
-
-        email_sample = [e.strip('\n') for e in email_sample]
-
-        con,cur = enron.connectDB('enron')
-
-        text = []
-
-        for e_id in email_sample:
-
-            cur.execute(" select text from emails where id = {0} ".format(e_id))
-            tmp=cur.fetchall()
-            text.append(tmp[0][0])
-
-        con.close()
-
-
-        #make email log file anyway
-
-        with open('email_sample.log', 'w') as elog:
-
-            elog.write('Email sample duplicated from {0}\n'.format(args.email_list))
-
-            for e_id in email_sample:
-
-                elog.write('{0}\n'.format(e_id))
-
-        
+            elog.write('{0}\n'.format(id))
 
 
 
@@ -170,21 +124,21 @@ def main():
 
 
     token_args = [
-             #   text,
+                text,
                 text, 
-             #   text
+                text
                 ]
     token_kwargs = [
-              #  {},
                 {},
-              #  {}
+                {},
+                {}
                 ]
     
     stem_kwargs = [
                 {}, 
-               # {}, 
                 {}, 
-               # {}, 
+                {}, 
+                {}, 
                 {}]
     
     #loop over each version

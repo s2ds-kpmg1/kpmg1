@@ -233,33 +233,55 @@ def addDBEntry(connect,cur, tablename, email, filepath):
 
 def cleanMessage(message):
 
-    #remove \n
+    
+    """Extra cleaning the text"""
 
-    clean1 = re.sub(r'\n|\r|\t', ' ', message)
+    #first remove all the \n and unicode remnants
 
-    #remove - which repeat >=3 times
+    textstring = stripCharacters(message)
 
-    clean2 = re.sub(r'-{3,}', '', clean1)
 
-    #remove leading/trailing whitespace
+    #next remove any email addresses
+    #sometimes they are not xxx@enron.com, but Name/HOU/ECT@ECT so need to include
+    #internal messages
+    textstring = re.sub(r"[a-z,A-Z,0-9,/]+@+[\w]+", r' ', textstring)
+    textstring = re.sub(r'/HOU/ECT', r'', textstring)
+    
+    #proper emails
+    textstring = re.sub(r"[a-z,A-Z,0-9,/,.]+@+[\w]+.\w*", r' ', textstring)
+    #relic html tags
+    textstring = re.sub(r"<(|/)\w+>", r' ', textstring)
+    #websites
+    #this isn't going to be perfect but I think it's good enough in this case
+    #there are pages of discussions about what to do with regex to extract
+    #urls on the internet and none of them work on everything
+    #this works on anything starting http(s) or www.
+    textstring = re.sub(r"(?:http(s)?://|www.)\S+", r'  ', textstring)
 
-    clean2 = clean2.strip()
+    #times
 
-    #locate multiple email chains and cut on first occurance of Original Message
-    #this creates a match object
+    textstring = re.sub(r"\d{2}(:|\s)\d{2}\s(p|a)m", r' ', textstring)
 
-    match = re.search(r'Original Message', clean2)
+    #dates
 
-    #match.start is the index of the first occurance of the search string. Want the 
-    #message from the beginning to that point
+    textstring = re.sub(r"\d{2}/\d{2}/\d{4}", r' ', textstring)
+    #attachment names
+    textstring = re.sub(r"[0-9,a-z,.,_]*.pdf",r' ',textstring)
+    textstring = re.sub(r"[0-9,a-z,.,_]*.doc",r' ',textstring)
 
-    if (match==None):
-        return clean2
-    else:
+    textstring = re.sub(r"\d{3}(-|\s)\d{3}(-|\s)\d{4}", r'  ', textstring)
 
-        clean3 = clean2[:match.start()]
+    #assorted punctuation punctuation
+    textstring = re.sub('[\^~+=!-*@#$<>.,;:?!|\-\(\)/"\'\[\]]', r' ' , textstring)
+    
+    #finally any character which repeats >2 times
+    #will remove any extra whitespace for example
+    textstring = re.sub(r'(.)\1{2,}', r' ', textstring)
 
-        return clean3
+
+
+    return textstring
+
 
 
 
