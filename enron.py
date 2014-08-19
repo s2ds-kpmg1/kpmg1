@@ -7,6 +7,92 @@ from nltk.corpus import stopwords
 import random
 import math
 
+def stripCharacters(string, backslash_char = True):
+
+    """Strips the weird non-unicode characters that appear in the odd email"""
+
+            
+    newstring = re.sub(r"[\x90-\xff]", '',string)
+
+    if (backslash_char == True):
+        newstring2 = re.sub(r'\r|\n|\t', ' ', newstring)
+    else:
+        newstring2 = newstring
+
+    return newstring2
+
+
+def cleanString(textstring):
+
+
+        textstring = textstring.lower()
+
+    #first remove all the \n and unicode remnants
+
+    textstring = createdb.stripCharacters(textstring)
+
+
+    match = re.search(r'Original Message', textstring)
+
+    #match.start is the index of the first occurance of the search string. Want the 
+    #message from the beginning to that point
+
+    if (match==None):
+        textstring = textstring
+    else:
+        textstring = textstring[:match.start()]
+
+    #next remove any email addresses
+    #sometimes they are not xxx@enron.com, but Name/HOU/ECT@ECT so need to include
+    #internal messages
+    textstring = re.sub(r"[a-z,A-Z,0-9,/]+@+[\w]+", r' ', textstring)
+    textstring = re.sub(r'/HOU/ECT', r'', textstring)
+    
+    #proper emails
+    textstring = re.sub(r"[a-z,A-Z,0-9,/,.]+@+[\w]+.\w*", r' ', textstring)
+    #relic html tags
+    textstring = re.sub(r"<(|/)\w+>", r' ', textstring)
+    #websites
+    #this isn't going to be perfect but I think it's good enough in this case
+    #there are pages of discussions about what to do with regex to extract
+    #urls on the internet and none of them work on everything
+    #this works on anything starting http(s) or www.
+    textstring = re.sub(r"(?:http(s)?://|www.)\S+", r'  ', textstring)
+
+    #times
+
+    textstring = re.sub(r"\d{2}(:|\s)\d{2}\s(p|a)m", r' ', textstring)
+
+    #dates
+
+    textstring = re.sub(r"\d{2}/\d{2}/\d{4}", r' ', textstring)
+    #attachment names
+    textstring = re.sub(r"[0-9,a-z,.,_]*.pdf",r' ',textstring)
+    textstring = re.sub(r"[0-9,a-z,.,_]*.doc",r' ',textstring)
+
+    textstring = re.sub(r"\d{3}(-|\s)\d{3}(-|\s)\d{4}", r'  ', textstring)
+
+    #any directories showing up
+
+    textstring = re.sub(r"(|\w*)\\[a-z,\\]*", r' ', textstring)
+
+    #removes all numeric strings or anything that is a mix of numbers and letters
+
+    textstring = re.sub (r"\b(?=\w*\d)\w+", r'  ', textstring)
+
+    #assorted punctuation punctuation
+    textstring = re.sub(r"""\[\^~\+=!-\*@#\$<>\.,;:\?!\|\-\(\)/"\'\[\]\{\}\\]""", r'  ' , textstring)
+    
+    #finally any character which repeats >2 times
+    #will remove any extra whitespace for example
+    textstring = re.sub(r'(.)\1{2,}', r' ', textstring)
+
+    textstring = re.sub(r'\s\s*', r' ', textstring)
+
+    return textstring
+
+
+
 def getCustomStopwords(filename='add_stopwords.txt'):
 
     """Returns the full list, plus our new list of stopwords"""
