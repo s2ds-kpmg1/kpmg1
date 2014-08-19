@@ -39,12 +39,8 @@ def main():
         corpus.append(dictionary.doc2bow(text_stem, allow_update=False))
         print id
 
-    corpora.mmcorpus.MmCorpus.serialize('test.mm', corpus)
-    mm = corpora.mmcorpus.MmCorpus('test.mm')
-    dictionary.id2token("4300")
-    print(mm[20])
-    # print (corpus)
     outfile.write("{0}".format(corpus))
+    corpora.mmcorpus.MmCorpus.serialize('corpus.mm', corpus)
 
 if __name__ == '__main__':
     main()
