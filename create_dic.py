@@ -11,6 +11,7 @@ import stemming as stem
 from collections import Counter
 
 
+# THE REMOVAL OF STOPWORDS AND CUTS ON TERM FREQUENCY MUST BE REMOVED IF TF-IDF IS TO BE USED so this customizeDic function has for now been deprecated
 def customizeDic(minfreq,maxfreq):
 
     """
@@ -32,9 +33,9 @@ def customizeDic(minfreq,maxfreq):
     # Create a list with the ids of the words in the stopwords list
     stop_ids = [dic.token2id[stopword] for stopword in stoplist
                 if stopword in dic.token2id]
-    # Eliminate non desired entries in our dictionary
 
-    dic.filter_tokens(minfreq_ids + maxfreq_ids + stop_ids)
+    # Eliminate non desired entries in our dictionary
+    #dic.filter_tokens(minfreq_ids + maxfreq_ids + stop_ids)
 
     # Assign new ids to the remaining words to adjust for the reduced vocabulary
     dic.compactify()
