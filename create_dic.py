@@ -133,7 +133,7 @@ def main():
         dictionary = corpora.Dictionary.load_from_text("dictionary_words.txt")
 
     # Here we go: construct the dictionary and the word-frequency mapping for each email
-    for id in range(N, 1000):
+    for id in range(N, size[0]):
         cur.execute(" select text from emails where id = {0} ".format(id))
         tmp = cur.fetchall()
         text_stem = stem.stemmingString(tmp[0][0], id)

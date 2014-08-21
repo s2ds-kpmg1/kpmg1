@@ -68,8 +68,7 @@ def main():
 
     os.chdir(folderpath)
 
-    stop_words = enron.getCustomStopwords()
-
+    stop_words = stopwords.words('english')
 
     args = parser.parse_args()
 
