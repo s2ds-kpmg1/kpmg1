@@ -11,7 +11,7 @@ import stemming as stem
 from collections import Counter
 
 
-def customizeDic(freq):
+def customizeDic(minfreq,maxfreq):
 
     """
     This function loads an existing dictionary called "dictionary_freq.txt" and reduces its
@@ -27,14 +27,14 @@ def customizeDic(freq):
     dic=corpora.Dictionary.load_from_text("dictionary_freq.txt")
 
     # Create a list with the words that appear in less than N documents given by freq
-    once_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq <= freq]
-
+    minfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq <= minfreq]
+    maxfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq >= maxfreq]
     # Create a list with the ids of the words in the stopwords list
     stop_ids = [dic.token2id[stopword] for stopword in stoplist
                 if stopword in dic.token2id]
-
     # Eliminate non desired entries in our dictionary
-    dic.filter_tokens(once_ids + stop_ids)
+
+    dic.filter_tokens(minfreq_ids + maxfreq_ids + stop_ids)
 
     # Assign new ids to the remaining words to adjust for the reduced vocabulary
     dic.compactify()
@@ -42,7 +42,7 @@ def customizeDic(freq):
     # Save the new dictionary for reference
     dic.save_as_text("new_dic_words.txt", sort_by_word=True)
     dic.save_as_text("new_dic_freq.txt", sort_by_word=False)
-
+    
     return dic
 
 def initializeDic(N):
