@@ -117,10 +117,10 @@ def main():
     # Remove files which will be generated within this function to avoid appending to an existing file unless
     # there is an argument which explicitly requires append to existing file
     if (args.append == False):
-        if os.path.exists("word_replace_dic.txt"):
-            os.remove("word_replace_dic.txt")
-        if os.path.exists("ngrams_found.txt"):
-            os.remove("ngrams_found.txt")
+        if os.path.exists("word_replace_dic.csv"):
+            os.remove("word_replace_dic.csv")
+        if os.path.exists("ngrams_found.csv"):
+            os.remove("ngrams_found.csv")
 
     # Open the connection to the DB
     connection = mdb.connect('localhost', 'kpmg1', 's2ds', 'enron')
