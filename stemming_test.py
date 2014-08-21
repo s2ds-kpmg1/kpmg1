@@ -52,13 +52,16 @@ parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings
 parser.add_argument('-n', '--ngrams', help='Remove ngrams', default = False, action = 'store_true')
 parser.add_argument('-a', '--abbrev', help='Replace abbreviations', default = False, action = 'store_true')
 parser.add_argument('-e', '--email_list', help = 'Use existing email log', type = str)
+parser.add_argument('-d', '--directory', help = 'Output sub-directory name. Defaults to output', type=str, default='output')
 
 
 
 def main():
 
+    args = parser.parse_args()
+
     rootdir=os.getcwd()
-    foldername='output'
+    foldername=args.directory
     folderpath=os.path.join(rootdir,foldername)
     if (os.path.exists(folderpath)==True):
         shutil.rmtree(folderpath)
@@ -69,7 +72,7 @@ def main():
     stop_words = enron.getCustomStopwords()
 
 
-    args = parser.parse_args()
+    
 
     timinglog = open(os.path.join(folderpath,args.output_timelog), 'w')
 
@@ -94,11 +97,6 @@ def main():
     	       	   	["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
     				["gensim", "g = q.utils", "lemmatize"]
     ]
-
-
-    print 'Getting Text'
-
-    text, email_ids = enron.querySample(args.fraction, return_sample = True)
 
 
     #Either get text as new random sample, or use existing list
@@ -175,7 +173,11 @@ def main():
         text=words.ngramsText(text,3,"bigrams.txt","trigrams.txt")
 
 
-    token_args = [text,text, text]
+    token_args = [
+                text,
+                text, 
+                text
+                ]
     token_kwargs = [
                 {},
                 {},
@@ -187,7 +189,8 @@ def main():
                 {}, 
                 {}, 
                 {}, 
-                {}]
+                {}
+                ]
 
     
     #loop over each version
