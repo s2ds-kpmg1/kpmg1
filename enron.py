@@ -23,7 +23,6 @@ def stripCharacters(string, backslash_char = True):
 
     return newstring2
 
-
 def cleanString(textstring):
 
 
@@ -93,8 +92,6 @@ def cleanString(textstring):
 
     return textstring
 
-
-
 def getCustomStopwords(filename='add_stopwords.txt'):
 
     """Returns the full list, plus our new list of stopwords"""
@@ -120,7 +117,6 @@ def addToStopwords(word, filename = 'add_stopwords.txt'):
 
     return
 
-
 def queryDb(table, column, criteria):
     con, cur=connectDB("enron")
     cur.execute("select {0} from {1} where {2} ".format(column,table,criteria))
@@ -128,7 +124,6 @@ def queryDb(table, column, criteria):
     results=tmp
     con.close()
     return results
-
 
 def querySample(N, seed=False, return_sample = False):
     con, cur=connectDB("enron")
@@ -157,7 +152,6 @@ def querySample(N, seed=False, return_sample = False):
         return texts
     else:
         return (texts, sample)
-
 
 def deleteTable(cur, tablename):
         """Delete a table when you are connected to the database"""
