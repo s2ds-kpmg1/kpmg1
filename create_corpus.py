@@ -14,13 +14,17 @@ import enron
 class MyCorpus():
     def __iter__(self):
         try:
-            print "Customizing dictionary..."
-            dictionary=dic.customizeDic(10,30000)
+            #print "Customizing dictionary..."
+            #dictionary=dic.customizeDic(10,30000)
+            print "Loading dictionary..."
+            dictionary = corpora.Dictionary.load_from_text('dictionary_freq.txt')
+            print "Fetching size of email set from database..."
             connection = mdb.connect('localhost', 'kpmg1', 's2ds', 'enron')
             cur = connection.cursor()
             cur.execute("select id from emails order by id desc limit 1;")
             res = cur.fetchall()
             size = [int(col) for row in res for col in row]
+            print "Creating corpus..."
             for id in range(1,size[0]):
                 cur.execute(" select text from emails where id = {0} ".format(id))
                 tmp = cur.fetchall()
