@@ -22,7 +22,6 @@ class MyCorpus():
             res = cur.fetchall()
             size = [int(col) for row in res for col in row]
             for id in range(1,size[0]):
-                #print id
                 cur.execute(" select text from emails where id = {0} ".format(id))
                 tmp = cur.fetchall()
                 text_stem = stem.stemmingString(tmp[0][0], id)
