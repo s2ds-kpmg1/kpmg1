@@ -9,6 +9,7 @@ import enron
 from string import digits
 
 def stemmingListofStrings(textsid, stopwords=False):
+
     """
     This function takes a list of tuples (id,text) and returns the text after cleaning, tokenizer and stemming
     :param textsid: list of tuples with raw text (id,text)
