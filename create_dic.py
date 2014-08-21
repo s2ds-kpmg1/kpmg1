@@ -28,6 +28,7 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     minfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq < minfreq]
     maxfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq > maxfreq]
 
+
     if stopwords == True:
         # Load the stopwords list
         stoplist = enron.getCustomStopwords()
