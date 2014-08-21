@@ -130,7 +130,7 @@ def queryDb(table, column, criteria):
     return results
 
 
-def querySample(N, return_sample = False):
+def querySample(N, seed=False, return_sample = False):
     con, cur=connectDB("enron")
 
     cur.execute("select id from emails order by id desc limit 1;")
