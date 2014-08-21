@@ -27,7 +27,6 @@ class MyCorpus(object):
 
      def __iter__(self):
         try:
-
             for id in range(1,self.size):
                 self.cur.execute(" select text from emails where id = {0} ".format(id))
                 tmp = self.cur.fetchall()

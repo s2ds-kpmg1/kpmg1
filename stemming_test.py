@@ -52,13 +52,16 @@ parser.add_argument('-o', '--output_timelog', help = 'Output logname for timings
 parser.add_argument('-n', '--ngrams', help='Remove ngrams', default = False, action = 'store_true')
 parser.add_argument('-a', '--abbrev', help='Replace abbreviations', default = False, action = 'store_true')
 parser.add_argument('-e', '--email_list', help = 'Use existing email log', type = str)
+parser.add_argument('-d', '--directory', help = 'Output sub-directory name. Defaults to output', type=str, default='output')
 
 
 
 def main():
 
+    args = parser.parse_args()
+
     rootdir=os.getcwd()
-    foldername='output'
+    foldername=args.directory
     folderpath=os.path.join(rootdir,foldername)
     if (os.path.exists(folderpath)==True):
         shutil.rmtree(folderpath)
@@ -66,52 +69,45 @@ def main():
     else:
         os.makedirs(folderpath)
 
-    os.chdir(folderpath)
-
     stop_words = enron.getCustomStopwords()
 
 
-    args = parser.parse_args()
+    
 
-    timinglog = open(args.output_timelog, 'w')
+    timinglog = open(os.path.join(folderpath,args.output_timelog), 'w')
 
     timinglog.write('#Tokeniser Stemmer/Lemmatiser Codetime Writetime\n')
     
     
     
-    # NB this is just rough code while I have the ideas. It's not tested or anything
+    # NB if you make changes here also do it below for the args/kwargs
 
 
     token_command = [
-    			#	["nltk", "f = p.tokenize.WordPunctTokenizer()", "tokenize"],
+    				["nltk", "f = p.tokenize.WordPunctTokenizer()", "tokenize"],
     				["nltk", "f = p.tokenize.PunktWordTokenizer()", "tokenize"],
-    			#	["gensim", "f = p.utils", "tokenize"]
+    		      	["gensim", "f = p.utils", "tokenize"]
 
     ]
     
     stem_command = [
     				["nltk", "g = q.stem.snowball.EnglishStemmer()", "stem"],
-    			#	["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
+    				["nltk", "g = q.stem.snowball.PorterStemmer()", "stem"],
     				["nltk", "g = q.stem.lancaster.LancasterStemmer()", "stem"],
-    	       	#	["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
+    	       	   	["nltk", "g = q.stem.WordNetLemmatizer()", "lemmatize"],
     				["gensim", "g = q.utils", "lemmatize"]
     ]
 
-    print 'Getting Text'
-<<<<<<< HEAD
-=======
-    text, email_ids = enron.querySample(args.fraction, return_sample = True)
->>>>>>> a2785f775476963792c72436b67a70e163730717
 
     #Either get text as new random sample, or use existing list
 
-    if (len(args.email_list)==0):
+    if (args.email_list==None):
 
         print 'Creating random sample'
 
         text, email_ids = enron.querySample(args.fraction, return_sample = True)
 
-        with open('email_sample.log', 'w') as elog:
+        with open(os.path.join(folderpath,'email_sample.log'), 'w') as elog:
 
             for id in email_ids:
 
@@ -142,7 +138,7 @@ def main():
 
         #make email log file anyway
 
-        with open('email_sample.log', 'w') as elog:
+        with open(os.path.join(folderpath,'email_sample.log'), 'w') as elog:
 
             elog.write('Email sample duplicated from {0}\n'.format(args.email_list))
 
@@ -177,26 +173,25 @@ def main():
         text=words.ngramsText(text,3,"bigrams.txt","trigrams.txt")
 
 
-
-
-
     token_args = [
-             #   text,
+                text,
                 text, 
-             #   text
+                text
                 ]
     token_kwargs = [
-              #  {},
                 {},
-              #  {}
+                {},
+                {}
                 ]
     
     stem_kwargs = [
                 {}, 
-               # {}, 
                 {}, 
-               # {}, 
-                {}]
+                {}, 
+                {}, 
+                {}
+                ]
+
     
     #loop over each version
 
@@ -211,7 +206,7 @@ def main():
             n3 = scommand[0]
             n4 = getFunctionName(scommand[1])+'.'+scommand[2]
     
-            output = 'testing_{0}.{1}_{2}.{3}.csv'.format(n1,n2,n3,n4)
+            output = os.path.join(folderpath,'testing_{0}.{1}_{2}.{3}.csv'.format(n1,n2,n3,n4))
 
             print 'Currently working on {0}.{1} with {2}.{3}'.format(n1,n2,n3,n4)
         
@@ -252,7 +247,7 @@ def main():
 
             start_write = time.time()
 
-            with open(output, "wb") as f:
+            with open(os.path.join(folderpath,output), "wb") as f:
                 writer = csv.writer(f)  
                 writer.writerows([text_stem])
 
@@ -266,7 +261,6 @@ def main():
 
     timinglog.close()
 
-    os.chdir(rootdir)
 
 if __name__ == '__main__':
     main()
