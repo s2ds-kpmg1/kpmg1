@@ -8,10 +8,66 @@ import argparse
 import enron
 import stemming as stem
 import re
+import csv
+
 
 from collections import Counter
 
+def replaceAcronymsDict(abbdictname,dictname):
 
+    """
+    This function replace any acronym found in the corpus dictionary by the corresponding phrase in the abbreviation
+    dictionary.
+    :param abbdictname: name of the abbreviation dictionary
+    :param dictname: name of the corpus dictionary
+    :return: writes an output file called dictname_abb.txt
+    """
+
+#  Open and read the abbreviations dictionary
+    with open(abbdictname, 'Ur') as inputfile:
+        abbdict = list(tuple(rec) for rec in csv.reader(inputfile, delimiter=';'))
+        # Create two lists one with the abbreviations and other with the phrases joined by underscores
+        abbs=[entry[0].lower() for entry in abbdict]
+        phjoined=[entry[1].lower().replace(' ','_') for entry in abbdict]
+
+# Opern and read the corpus dictionary
+    with open(dictname) as dictfile:
+            entries = dictfile.readlines()
+            entries=[t.strip('\n') for t in entries]
+            entries=[entry.split() for entry in entries]
+            # Create three separate lists from the file
+            ids=[entry[0] for entry in entries]
+            words=[entry[1] for entry in entries]
+            freq=[entry[2] for entry in entries]
+
+    # Look for the abbreviations which are found in the corpus dictionary (to avoid going through the whole list)
+    setabbs=set(abbs)
+    setwords=set(words)
+    common=list(setwords&setabbs)
+
+    # Create an empty list where we will store the new set of words
+    newwords=[]
+
+    # Find and replace abbreviations and acronyms
+    for word in words:
+        if word in common:
+            newwords.append(phjoined[abbs.index(word)])
+        else:
+            newwords.append(word)
+
+    # Append _abb to our input dictionary name
+    outname=dictname.split(".")[0]+'_abb.'+dictname.split(".")[1]
+    # Remove preexisting modified dictionary
+    if os.path.exists(outname):
+            os.remove(outname)
+
+    # Write the results in our new dictionary
+    outfile = open(outname, 'a+')
+    for i in range(len(words)):
+        outfile.writelines("{0} {1} {2} \n".format(ids[i].ljust(6),newwords[i].ljust(7),freq[i].ljust(0)))
+    outfile.close()
+
+    return
 
 def customizeDic(minfreq, maxfreq, stopwords=False):
 
@@ -99,10 +155,9 @@ def initializeDic(N, stopwords=False):
 
     return dictionary
 
-
 parser = argparse.ArgumentParser(description="Generating a dictionary")
-parser.add_argument('-N', '--Ndic', help = 'Number of texts considered for initial dictionary',
-                    required = True, type=int)
+parser.add_argument('-N', '--Ndic', help = 'Number of texts considered for initial dictionary'
+                    ,default=3,required = False, type=int)
 parser.add_argument('-dic', '--initialize', help='initialize dictionary', default=False, action='store_true')
 parser.add_argument('--append', help='append word mapping to existing file', default=False,
                     action='store_true')
