@@ -53,13 +53,13 @@ def main():
 
     if raw == True:
         print "Creating corpus..."
-        corpus=MyCorpus("dictionary_freq.txt",size=100)
+        corpus=MyCorpus("dictionary_freq.txt")
         corpora.mmcorpus.MmCorpus.serialize('corpus.mm', corpus)
     elif raw == False:
         print "Customizing dictionary..."
         dic.customizeDic(min,max,stopwords=stopws)
         print "Creating corpus..."
-        corpus=MyCorpus("new_dic_freq.txt",100)
+        corpus=MyCorpus("new_dic_freq.txt")
         filename="corpus_min{0}_max{1}_stopwds{2}.mm".format(min,max,stopws)
         corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
 
