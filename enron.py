@@ -86,7 +86,7 @@ def cleanString(textstring):
     
     #finally any character which repeats >2 times
     #will remove any extra whitespace for example
-    textstring = re.sub(r'(.)\1{2,}', r' ', textstring)
+    textstring = re.sub(r'(.)\1{2,}\w+', r' ', textstring)
 
     textstring = re.sub(r'\s\s*', r' ', textstring)
 
