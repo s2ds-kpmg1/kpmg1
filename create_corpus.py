@@ -39,7 +39,8 @@ class MyCorpus(object):
 parser = argparse.ArgumentParser(description="Generating a corpus")
 parser.add_argument("--raw", help="Use raw dictionary (don't apply customization)",default=False, action='store_true')
 parser.add_argument("--stopwords", help="Add stopwords",default=False, action='store_true')
-parser.add_argument("--minfreq", help="Create a dictionary using the whole set of emails",default=0,required = False, type=int)
+parser.add_argument("--minfreq", help="Create a dictionary using the whole set of emails",
+                    default=0,required = False, type=int)
 parser.add_argument('--maxfreq', help = 'Number of emails used to build the dictionary',
                     default=300000,required = False, type=int)
 
@@ -53,13 +54,13 @@ def main():
 
     if raw == True:
         print "Creating corpus..."
-        corpus=MyCorpus("dictionary_freq.txt")
+        corpus=MyCorpus("dictionary_freq.txt",size=30000)
         corpora.mmcorpus.MmCorpus.serialize('corpus.mm', corpus)
     elif raw == False:
         print "Customizing dictionary..."
         dic.customizeDic(min,max,stopwords=stopws)
         print "Creating corpus..."
-        corpus=MyCorpus("new_dic_freq.txt")
+        corpus=MyCorpus("new_dic_freq.txt",size=30000)
         filename="corpus_min{0}_max{1}_stopwds{2}.mm".format(min,max,stopws)
         corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
 
