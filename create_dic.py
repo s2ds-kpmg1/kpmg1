@@ -7,6 +7,7 @@ from gensim import corpora
 import argparse
 import enron
 import stemming as stem
+import re
 
 from collections import Counter
 
