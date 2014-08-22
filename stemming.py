@@ -78,7 +78,7 @@ def stemmingString(text, id):
 
     # Tokenize the texts and eliminates stopwords and all words with length < 2
     text_token = scrub.tokenizeString(text, lower=True, tokenizer="punktword")
-    text_token = [x for x in text_token if x not in stop_words and len(x) > 1]
+    #text_token = [x for x in text_token if x not in stop_words and len(x) > 1]
 
     # Apply stemming
     text_stem = [stem.stem(word) for word in text_token]
