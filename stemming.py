@@ -66,8 +66,6 @@ def stemmingString(text, id, stopwords=False):
     # Initialize the stemmer snowball
     stem = nltk.stem.snowball.EnglishStemmer()
 
-
-
     # Clean the text eliminating symbols and numbers
     text = text.translate(None, digits)
     # text = re.sub(r'(.)\1{2}', r'', text)
