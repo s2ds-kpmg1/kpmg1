@@ -29,6 +29,8 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     minfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq < minfreq]
     maxfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq > maxfreq]
 
+
+
     if stopwords == True:
         # Load the stopwords list
         stoplist = enron.getCustomStopwords()
@@ -39,6 +41,20 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     elif stopwords == False:
         # Eliminate non desired entries in our dictionary
         dic.filter_tokens(minfreq_ids + maxfreq_ids)
+
+    #use re to remove some relics in the database
+
+    myre1 = re.compile(r'(.)\1{2,}\w+')       #repeated character words
+    myre2 = re.compile(r'(|\w*)\\[a-z,\\]*')  #backslash words
+    myre3 = re.compile(r'[a-z]{20,}')         #words longer than 20 characters
+
+    words1 = [dic.token2id[i] for i in dic.token2id.keys() if myre1.search(i)]
+    words2 = [dic.token2id[i] for i in dic.token2id.keys() if myre2.search(i)]
+    words3 = [dic.token2id[i] for i in dic.token2id.keys() if myre3.search(i)]
+
+    allwords = list(set(words1+words2+words3))
+
+    dic.filter_tokens(allwords)
 
     # Assign new ids to the remaining words to adjust for the reduced vocabulary
     dic.compactify()
