@@ -3,13 +3,14 @@ __author__ = 'elenagr'
 import os
 import time
 import MySQLdb as mdb
-from gensim import corpora
-import enron
+from gensim import corpora, models, matutils
+from time import time
 import create_dic as dic
 import argparse
 import stemming as stem
-import enron
-
+import numpy as np
+import tfidf
+import kmeans_analysis as Mykmeans
 
 class MyCorpus(object):
      def __init__(self, dict_name,size=None):
@@ -37,32 +38,61 @@ class MyCorpus(object):
 
 
 parser = argparse.ArgumentParser(description="Generating a corpus")
-parser.add_argument("--raw", help="Use raw dictionary (don't apply customization)",default=False, action='store_true')
 parser.add_argument("--stopwords", help="Add stopwords",default=False, action='store_true')
-parser.add_argument("--minfreq", help="Create a dictionary using the whole set of emails",
+parser.add_argument("--minfreq", help="Don't consider words whose frequency in the dictionary is below minfreq",
                     default=0,required = False, type=int)
-parser.add_argument('--maxfreq', help = 'Number of emails used to build the dictionary',
+parser.add_argument('--maxfreq', help = "Don't consider words whose frequency in the dictionary is over maxfreq",
                     default=300000,required = False, type=int)
+parser.add_argument("--all", help="Create corpus using the whole set of emails",default=False, action='store_true')
+parser.add_argument('--emails', help = 'Number of emails used to build the corpus',
+                    default=None,required = False, type=int)
+parser.add_argument("--tfidf", help="Apply tf-idf to the corpus",default=False, action='store_true')
+parser.add_argument("--npy", help="Save corpus as a numpy array to be read by sci-kit learn",
+                    default=False, action='store_true')
+parser.add_argument("--bin", help="Save corpus as a binary file to be read by anybody",
+                    default=False, action='store_true')
 
 def main():
 
     args = parser.parse_args()
     min=args.minfreq
     max=args.maxfreq
+    Nemails=args.emails
     stopws=args.stopwords
-    raw=args.raw
 
-    if raw == True:
-        print "Creating corpus..."
-        corpus=MyCorpus("dictionary_freq.txt",size=30000)
-        corpora.mmcorpus.MmCorpus.serialize('corpus.mm', corpus)
-    elif raw == False:
-        print "Customizing dictionary..."
-        dic.customizeDic(min,max,stopwords=stopws)
-        print "Creating corpus..."
-        corpus=MyCorpus("new_dic_freq.txt",size=30000)
-        filename="corpus_min{0}_max{1}_stopwds{2}.mm".format(min,max,stopws)
-        corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
+    if args.all:
+        filename="corpus_min{0}_stopwds{1}_all.mm".format(min,stopws)
+    else:
+        filename="corpus_min{0}_stopwds{1}_{2}emails.mm".format(min,stopws,Nemails)
+
+    t0=time()
+
+    print "Customizing dictionary..."
+    dic.customizeDic(min,max,stopwords=stopws)
+
+    print "Creating corpus..."
+    dictionaryname="new_dic_min{0}_stopwds{1}_freq.txt".format(min,stopws)
+    # Create corpus
+    corpus=MyCorpus(dictionaryname,size=Nemails)
+    # Save corpus to a mm file
+    corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
+
+    if args.tfidf:
+        print "Applying tf-idf to the corpus"
+        corpus=tfidf.tfidfCorpus(filename)
+        filename=filename.split(".")[0]+'_tfidf.'+filename.split(".")[1]
+
+    if args.npy:
+        print "Saving corpus as a numpy array"
+        Mykmeans.npmatrixCorpus(filename,126854,999)
+
+    if args.bin:
+        filename=filename.split(".")[0]+".bin"
+        Mykmeans.binaryMatrix(filename)
+
+    t1=time()-t0
+
+    print 'Total time to create corpus: {0} sec'.format(t1)
 
     return corpus
 

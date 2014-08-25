@@ -6,6 +6,36 @@ from gensim import corpora, models
 import time
 import argparse
 
+def tfidfCorpus(corpusname):
+
+    start_time = time.time()
+
+    # Load the raw count (TF) corpus
+    corpus = corpora.MmCorpus(corpusname)
+
+    # Define a model (which is the gensim name for a transformation) based on this corpus which performs
+    #  the TFIDF transformation/calculation
+    tfidf = models.TfidfModel(corpus)
+
+    # Apply it to the input corpus
+    new_corpus = tfidf[corpus]
+
+    outname=corpusname.split(".")[0]+'_tfidf.'+corpusname.split(".")[1]
+    # Save the new corpus
+    corpora.mmcorpus.MmCorpus.serialize(outname, new_corpus)
+
+    # This command displays the corpus. Or run a print loop over the elements of the corpus. For debugging purposes.
+    #print(list(new_corpus))
+
+    end_time=time.time()
+    time_taken = end_time - start_time
+
+    print 'Time taken to perform TF-IDF reweighting: {0}'.format(time_taken)
+
+    return new_corpus
+
+
+
 parser = argparse.ArgumentParser(description="Generating a corpus")
 parser.add_argument("--file", help="Name of the corpus in mm format",
                     default="corpus.mm",required = False, type=str)
@@ -19,7 +49,8 @@ def main():
     # Load the raw count (TF) corpus
     corpus = corpora.MmCorpus(corpusname)
 
-    # Define a model (which is the gensim name for a transformation) based on this corpus which performs the TFIDF transformation/calculation
+    # Define a model (which is the gensim name for a transformation) based on this corpus which performs
+    #  the TFIDF transformation/calculation
     tfidf = models.TfidfModel(corpus)
 
     # Apply it to the input corpus
