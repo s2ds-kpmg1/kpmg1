@@ -86,8 +86,6 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     minfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq <= minfreq]
     maxfreq_ids = [tokenid for tokenid, docfreq in dic.dfs.iteritems() if docfreq >= maxfreq]
 
-
-
     if stopwords == True:
         # Load the stopwords list
         stoplist = enron.getCustomStopwords()
@@ -117,8 +115,10 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     dic.compactify()
 
     # Save the new dictionary for reference
-    dic.save_as_text("new_dic_words.txt", sort_by_word=True)
-    dic.save_as_text("new_dic_freq.txt", sort_by_word=False)
+    filename1="new_dic_min{0}_stopwds{1}_words.txt".format(minfreq,stopwords)
+    dic.save_as_text(filename1, sort_by_word=True)
+    filename2="new_dic_min{0}_stopwds{1}_freq.txt".format(minfreq,stopwords)
+    dic.save_as_text(filename2, sort_by_word=False)
     
     return dic
 
