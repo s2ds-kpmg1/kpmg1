@@ -46,23 +46,21 @@ def binaryMatrix(inputfile):
 parser = argparse.ArgumentParser(description="Applying k-means clustering")
 parser.add_argument("--file", help="Name of the file stored: numpy array"
                     ,required = True, type=str)
+parser.add_argument('--Nclusters', help = 'Number of clusters',
+                    default=3,required = False, type=int)
+
 def main():
 
     args = parser.parse_args()
     filename=args.file
-    Nclusters=10
+    Nclusters=args.Nclusters
     t0 = time()
 
-    dictname="new_dic_min1_stopwdsTrue_freq.txt"
+    dictname="new_dic_min10_stopwdsTrue_freq.txt"
     dictionary=corpora.Dictionary.load_from_text(dictname)
 
     npyfile=filename+'.npy'
     npy=np.load(npyfile)
-
-    terms=dictionary.id2token
-
-    corpusfile=filename+'.mm'
-    corpus = corpora.mmcorpus.MmCorpus(corpusfile)
 
     print("n_samples: %d, n_features: %d" % npy.shape)
     k_means = KMeans(n_clusters=Nclusters, init='k-means++', max_iter=100, n_init=1,
@@ -73,13 +71,21 @@ def main():
     t0 = time()
     labels = k_means.labels_
 
-    print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, k_means.labels_))
-    print("Completeness: %0.3f" % metrics.completeness_score(labels, k_means.labels_))
-    print("V-measure: %0.3f" % metrics.v_measure_score(labels, k_means.labels_))
-    print("Adjusted Rand-Index: %.3f"
-      % metrics.adjusted_rand_score(labels, k_means.labels_))
-    print("Silhouette Coefficient: %0.3f"
-      % metrics.silhouette_score(npy, labels, sample_size=1000))
+    # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, k_means.labels_))
+    # print("Completeness: %0.3f" % metrics.completeness_score(labels, k_means.labels_))
+    # print("V-measure: %0.3f" % metrics.v_measure_score(labels, k_means.labels_))
+    # print("Adjusted Rand-Index: %.3f"
+    #   % metrics.adjusted_rand_score(labels, k_means.labels_))
+    # print("Silhouette Coefficient: %0.3f"
+    #   % metrics.silhouette_score(npy, labels, sample_size=1000))
+
+    print("Top terms per cluster:")
+    order_centroids = k_means.cluster_centers_.argsort()[:, ::-1]
+    for i in range(Nclusters):
+        print("Cluster %d:" % i)
+        for ind in order_centroids[i, :10]:
+            print(' %s' % dictionary[ind])
+        print()
 
     print()
     # if True:
@@ -97,9 +103,9 @@ def main():
     k_means_cluster_centers = k_means.cluster_centers_
     k_means_labels_unique = np.unique(k_means_labels)
 
-    print k_means_labels
-    print k_means_cluster_centers
-    print k_means_labels_unique
+    # print k_means_labels
+    # print k_means_cluster_centers
+    # print k_means_labels_unique
 
 
 if __name__ == '__main__':
