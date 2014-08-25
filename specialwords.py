@@ -36,7 +36,6 @@ from gensim.parsing.preprocessing import STOPWORDS
 logging.basicConfig(format='%(levelname)s : %(message)s', level=logging.INFO)
 logging.root.level = logging.INFO  # ipython sometimes messes up the logging setup; restore
 
-
 def abbreviations(text,fname,id=None):
 
     """
@@ -112,6 +111,8 @@ def ngramsText(text,N,file1,file2,id=None):
 
     else:
         print "Please insert the correct argument:\n 2 for bigrams \n 3 for bigrams and trigrams\n"
+
+    outfile.close()
 
     return text
 
