@@ -102,12 +102,15 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     myre1 = re.compile(r'(.)\1{2,}\w+')       #repeated character words
     myre2 = re.compile(r'(|\w*)\\[a-z,\\]*')  #backslash words
     myre3 = re.compile(r'[a-z]{20,}')         #words longer than 20 characters
+    myre4 = re.compile(r'\b_\w+')
 
     words1 = [dic.token2id[i] for i in dic.token2id.keys() if myre1.search(i)]
     words2 = [dic.token2id[i] for i in dic.token2id.keys() if myre2.search(i)]
     words3 = [dic.token2id[i] for i in dic.token2id.keys() if myre3.search(i)]
+    words4 = [dic.token2id[i] for i in dic.token2id.keys() if myre4.search(i)]
 
-    allwords = list(set(words1+words2+words3))
+
+    allwords = list(set(words1+words2+words3+words4))
 
     dic.filter_tokens(allwords)
 
