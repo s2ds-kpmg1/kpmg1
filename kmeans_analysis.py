@@ -9,24 +9,25 @@ import argparse
 from sklearn import metrics
 from sklearn.feature_extraction.text import TfidfVectorizer
 
-def npmatrixCorpus(corpusname,features, docs):
-
+def npmatrixCorpus(corpusname,features):
+    t0=time()
     # Read corpus from file
     new_corpus = corpora.mmcorpus.MmCorpus(corpusname)
-
+    docs=len(new_corpus)
     # Convert corpus to numpy array
     X=matutils.corpus2dense(new_corpus,features,num_docs=docs)
 
     # Save array to file
     outfile=corpusname.split(".")[0]+'.npy'
     np.save(outfile, X)
+    print "numpy array saved in {0} sec".format(time()-t0)
     return X
 
 
 def binaryMatrix(inputfile):
 
     outputfile = inputfile.split(".")[0]+".bin"
-
+    t0=time()
     # Load from the file
     mat = np.load(inputfile)
 
@@ -40,7 +41,7 @@ def binaryMatrix(inputfile):
         data = struct.pack('%id' % mat.shape[0], *mat[:,i])
         binfile.write(data)
     binfile.close()
-
+    print "Binary file saved in {0} secs".format(time()-t0)
 
 
 parser = argparse.ArgumentParser(description="Applying k-means clustering")
@@ -48,6 +49,7 @@ parser.add_argument("--file", help="Name of the file stored: numpy array"
                     ,required = True, type=str)
 parser.add_argument('--Nclusters', help = 'Number of clusters',
                     default=3,required = False, type=int)
+parser.add_argument("--minibatch", help="Use MiniBatchKMeans",default=False, action='store_true')
 
 def main():
 
@@ -56,20 +58,25 @@ def main():
     Nclusters=args.Nclusters
     t0 = time()
 
+    print "Loading dictionary..."
     dictname="new_dic_min10_stopwdsTrue_freq.txt"
     dictionary=corpora.Dictionary.load_from_text(dictname)
-
+    print "Loading corpus..."
     npyfile=filename+'.npy'
     npy=np.load(npyfile)
 
-    print("n_samples: %d, n_features: %d" % npy.shape)
-    k_means = KMeans(n_clusters=Nclusters, init='k-means++', max_iter=100, n_init=1,
-                verbose=True)
+    print("n_features: %d, n_samples: %d" % npy.shape)
+    if args.minibatch:
+        km = MiniBatchKMeans(init='k-means++', n_clusters=Nclusters,n_init=10, verbose=True)
+    else:
+        km = KMeans(n_clusters=Nclusters, init='k-means++', max_iter=100, n_init=1,verbose=True)
+
     t0 = time()
-    k_means.fit(npy)
+    print "Fitting the data..."
+    km.fit(npy)
     print("done in %0.3fs" % (time() - t0))
     t0 = time()
-    labels = k_means.labels_
+    # labels = mbkm.labels_
 
     # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, k_means.labels_))
     # print("Completeness: %0.3f" % metrics.completeness_score(labels, k_means.labels_))
@@ -80,7 +87,7 @@ def main():
     #   % metrics.silhouette_score(npy, labels, sample_size=1000))
 
     print("Top terms per cluster:")
-    order_centroids = k_means.cluster_centers_.argsort()[:, ::-1]
+    order_centroids = km.cluster_centers_.argsort()[:, ::-1]
     for i in range(Nclusters):
         print("Cluster %d:" % i)
         for ind in order_centroids[i, :10]:
@@ -88,6 +95,8 @@ def main():
         print()
 
     print()
+
+
     # if True:
     #     print("Top terms per cluster:")
         # order_centroids = k_means.cluster_centers_.argsort()[:, ::-1]
@@ -98,10 +107,10 @@ def main():
         #         print(' %s \n' % terms[ind])
         #         print()
 
-    t_batch = time() - t0
-    k_means_labels = k_means.labels_
-    k_means_cluster_centers = k_means.cluster_centers_
-    k_means_labels_unique = np.unique(k_means_labels)
+    # t_batch = time() - t0
+    # k_means_labels = mbkm.labels_
+    # k_means_cluster_centers = mbkm.cluster_centers_
+    # k_means_labels_unique = np.unique(k_means_labels)
 
     # print k_means_labels
     # print k_means_cluster_centers
