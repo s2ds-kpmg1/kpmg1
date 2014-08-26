@@ -52,7 +52,7 @@ parser.add_argument("--npy", help="Save corpus as a numpy array to be read by sc
 parser.add_argument("--bin", help="Save corpus as a binary file to be read by anybody",
                     default=False, action='store_true')
 
-def main(): 
+def main():
 
     args = parser.parse_args()
     min=args.minfreq
@@ -68,10 +68,14 @@ def main():
     t0=time()
 
     print "Customizing dictionary..."
-    dic.customizeDic(min,max,stopwords=stopws)
+    dictionaryname="new_dic_"+filename.split(".")[0]
+
+    dic.customizeDic(dictionaryname,min,max,stopwords=stopws)
+
+    dictionaryname=dictionaryname+"_freq.txt"
 
     print "Creating corpus..."
-    dictionaryname="new_dic_min{0}_stopwds{1}_freq.txt".format(min,stopws)
+
     dict=corpora.Dictionary.load_from_text(dictionaryname)
     features=len(dict)
     # Create corpus
@@ -96,6 +100,7 @@ def main():
 
     t1=time()-t0
 
+    print "Dictionary used to create the corpus: {0}".format(dictionaryname)
     print 'Total time to create corpus: {0} sec'.format(t1)
 
     return corpus

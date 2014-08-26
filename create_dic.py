@@ -69,7 +69,7 @@ def replaceAcronymsDict(abbdictname,dictname):
 
     return
 
-def customizeDic(minfreq, maxfreq, stopwords=False):
+def customizeDic(dictionaryname,minfreq, maxfreq, stopwords=False):
 
     """
     This function loads an existing dictionary called "dictionary_freq.txt" and reduces its
@@ -115,9 +115,9 @@ def customizeDic(minfreq, maxfreq, stopwords=False):
     dic.compactify()
 
     # Save the new dictionary for reference
-    filename1="new_dic_min{0}_stopwds{1}_words.txt".format(minfreq,stopwords)
+    filename1=dictionaryname+"_words.txt"
+    filename2=dictionaryname+"_freq.txt"
     dic.save_as_text(filename1, sort_by_word=True)
-    filename2="new_dic_min{0}_stopwds{1}_freq.txt".format(minfreq,stopwords)
     dic.save_as_text(filename2, sort_by_word=False)
     
     return dic
