@@ -53,7 +53,7 @@ def kmeans_test(X, cluster_array, makeplot=True, makefile = True, bfrac = 10):
 
     if makefile == True:
 
-        outarr = np.column_stack(ks, wks, wkbs, sk)
+        outarr = np.column_stack((ks, wks, wkbs, sk))
 
         print 'Gap statistic written to file gap_stat.out'
 
