@@ -52,7 +52,7 @@ parser.add_argument("--npy", help="Save corpus as a numpy array to be read by sc
 parser.add_argument("--bin", help="Save corpus as a binary file to be read by anybody",
                     default=False, action='store_true')
 
-def main():
+def main(): 
 
     args = parser.parse_args()
     min=args.minfreq

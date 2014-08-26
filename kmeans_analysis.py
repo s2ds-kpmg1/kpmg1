@@ -59,7 +59,7 @@ def main():
     t0 = time()
 
     print "Loading dictionary..."
-    dictname="new_dic_min10_stopwdsTrue_freq.txt"
+    dictname="new_dic_min1_stopwdsTrue_freq.txt"
     dictionary=corpora.Dictionary.load_from_text(dictname)
     print "Loading corpus..."
     npyfile=filename+'.npy'
@@ -71,9 +71,13 @@ def main():
     else:
         km = KMeans(n_clusters=Nclusters, init='k-means++', max_iter=100, n_init=1,verbose=True)
 
+
+
     t0 = time()
     print "Fitting the data..."
     km.fit(npy)
+    inertia=km.inertia_
+
     print("done in %0.3fs" % (time() - t0))
     t0 = time()
     # labels = mbkm.labels_
@@ -109,7 +113,7 @@ def main():
 
     # t_batch = time() - t0
     # k_means_labels = mbkm.labels_
-    # k_means_cluster_centers = mbkm.cluster_centers_
+    k_means_cluster_centers = km.cluster_centers_
     # k_means_labels_unique = np.unique(k_means_labels)
 
     # print k_means_labels
