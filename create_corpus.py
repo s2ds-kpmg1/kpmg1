@@ -72,10 +72,13 @@ def main():
 
     print "Creating corpus..."
     dictionaryname="new_dic_min{0}_stopwds{1}_freq.txt".format(min,stopws)
+    dict=corpora.Dictionary.load_from_text(dictionaryname)
+    features=len(dict)
     # Create corpus
     corpus=MyCorpus(dictionaryname,size=Nemails)
     # Save corpus to a mm file
     corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
+    print "Corpus created in {0} secs".format(time()-t0)
 
     if args.tfidf:
         print "Applying tf-idf to the corpus"
@@ -84,10 +87,11 @@ def main():
 
     if args.npy:
         print "Saving corpus as a numpy array"
-        Mykmeans.npmatrixCorpus(filename,126854,999)
+        Mykmeans.npmatrixCorpus(filename,features)
 
     if args.bin:
-        filename=filename.split(".")[0]+".bin"
+        print "Saving corpus as a binary file"
+        filename=filename.split(".")[0]+".npy"
         Mykmeans.binaryMatrix(filename)
 
     t1=time()-t0
