@@ -8,6 +8,7 @@ import struct
 import argparse
 from sklearn import metrics
 from sklearn.feature_extraction.text import TfidfVectorizer
+import matplotlib.pyplot as plt
 
 def npmatrixCorpus(corpusname,features):
     t0=time()
@@ -44,6 +45,76 @@ def binaryMatrix(inputfile):
     print "Binary file saved in {0} secs".format(time()-t0)
 
 
+def kmeans_test(X, cluster_array, makeplot=True, makefile = True, bfrac = 10):
+
+    """Runs the gap statistic on a number of clusters"""
+
+    ks, wks, wkbs, sk = gap_statistic(X, cluster_array, bfrac)
+
+    if makefile == True:
+
+        outarr = np.column_stack(ks, wks, wkbs, sk)
+
+        print 'Gap statistic written to file gap_stat.out'
+
+        np.savetxt('gap_stat.out', outarr)
+
+    if makeplot == True:
+
+        gap = wkbs - wks
+
+        gap_fn = np.zeros(len(ks)-1)
+
+        for i in np.arange(len(ks)-1): gap_fn[i] = gap[i] - (gap[i+1] - sk[i+1])
+
+        plt.plot(ks[:-1], gap_fn, 'b-')
+        plt.xlabel('Number of clusters')
+        plt.ylabel('G(k) - (G(k+1) - s(k+1))')
+
+        plt.show()
+
+    return
+
+
+def gap_statistic(X, cluster_array, bfrac):
+
+    """Gap statistic code.  Requires a numpy matrix, a list of clusters to try and the number of ref samples to create"""
+
+    ks = cluster_array
+    Wks = np.zeros(len(ks))
+    Wkbs = np.zeros(len(ks))
+    sk = np.zeros(len(ks))
+
+    for indk, k in enumerate(ks):
+
+        #just use k-means++ for now. This could change or be an option as in the main script
+
+        model = MiniBatchKMeans(init='k-means++', n_clusters=k, n_init=10, max_no_improvement=10, verbose=0)
+
+        allvals = model.fit(X)
+        Wks[indk] = np.log10(allvals.inertia_)
+
+        B=bfrac
+
+        BWkbs = np.zeros(B)
+
+        for i in range(B):
+
+            print 'B = {0}'.format(i)
+
+            Xb = np.random.random(np.shape(X))
+            Bval = model.fit(Xb)
+            BWkbs[i] = np.log10(Bval.inertia_)
+
+        Wkbs[indk] = sum(BWkbs)/B    #take the mean
+        sk[indk] = np.sqrt(sum((BWkbs-Wkbs[indk])**2)/B)    #sd = sqrt(sum(mean-indiv)**2/n)
+    #rescale    
+    sk = sk * np.sqrt(1.+1./B)
+
+    return (ks, Wks, Wkbs, sk)
+
+
+
 parser = argparse.ArgumentParser(description="Applying k-means clustering")
 parser.add_argument("--file", help="Name of the file stored: numpy array"
                     ,required = True, type=str)
@@ -71,8 +142,6 @@ def main():
     else:
         km = KMeans(n_clusters=Nclusters, init='k-means++', max_iter=100, n_init=1,verbose=True)
 
-
-
     t0 = time()
     print "Fitting the data..."
     km.fit(npy)
@@ -80,7 +149,7 @@ def main():
 
     print("done in %0.3fs" % (time() - t0))
     t0 = time()
-    # labels = mbkm.labels_
+    labels = mbkm.labels_
 
     # print("Homogeneity: %0.3f" % metrics.homogeneity_score(labels, k_means.labels_))
     # print("Completeness: %0.3f" % metrics.completeness_score(labels, k_means.labels_))
@@ -98,7 +167,7 @@ def main():
             print(' %s' % dictionary[ind])
         print()
 
-    print()
+    #print()
 
 
     # if True:
@@ -113,7 +182,7 @@ def main():
 
     # t_batch = time() - t0
     # k_means_labels = mbkm.labels_
-    k_means_cluster_centers = km.cluster_centers_
+    #k_means_cluster_centers = km.cluster_centers_
     # k_means_labels_unique = np.unique(k_means_labels)
 
     # print k_means_labels
