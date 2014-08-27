@@ -55,18 +55,34 @@ def main():
 
     logging.basicConfig(filename=args.logfile, format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
-    mm = gensim.corpora.MmCorpus(corp)
+    mm = gensim.corpora.MmCorpus(args.corpus)
 
-    print (corp)
+    print (args.corpus)
     print(mm)
 
-    logging.info("Using corpus {0}".format(corp))
-    logging.info("Using topic number {0}".format(ntop))
-    print 'Running topic {0}'.format(ntop)
+    logging.info("Using corpus {0}".format(args.corpus))
+    logging.info("Using topic number {0}".format(topics))
+    print 'Running topic {0}'.format(topics)
 
     #This is the pure gensim version. It uses variational Bayes
     lda = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=topics, eval_every=20, chunksize=10000, passes=5)
-  
+
+    #apply to corpus again
+
+    outdoc = 'lda_document_labels.{0}.txt'.format(args.corpus)
+    outfile = open(outdoc, 'w')
+
+    for idx,doc in enumerate(mm):
+
+        tops = lda[doc]
+        proportion = [x[1] for x in tops]
+        most_important = proportion.index(max(proportion))
+        print 'Document {0}: Topic {1}'.format(idx, most_important)
+        outfile.write('{0}\n'.format(most_important))
+
+    outfile.close()
+
+
     
 
     
