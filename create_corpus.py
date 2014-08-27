@@ -47,6 +47,7 @@ parser.add_argument("--all", help="Create corpus using the whole set of emails",
 parser.add_argument('--emails', help = 'Number of emails used to build the corpus',
                     default=None,required = False, type=int)
 parser.add_argument("--tfidf", help="Apply tf-idf to the corpus",default=False, action='store_true')
+parser.add_argument("--unitnorm", help="Normalizing the corpus to unit norm vectors",default=False, action='store_true')
 parser.add_argument("--npy", help="Save corpus as a numpy array to be read by sci-kit learn",
                     default=False, action='store_true')
 parser.add_argument("--bin", help="Save corpus as a binary file to be read by anybody",
@@ -77,21 +78,26 @@ def main():
     print "Creating corpus..."
 
     dict=corpora.Dictionary.load_from_text(dictionaryname)
-    features=len(dict)
     # Create corpus
     corpus=MyCorpus(dictionaryname,size=Nemails)
+
     # Save corpus to a mm file
     corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
     print "Corpus created in {0} secs".format(time()-t0)
 
     if args.tfidf:
         print "Applying tf-idf to the corpus"
-        corpus=tfidf.tfidfCorpus(filename)
+        corpus=tfidf.tfidfCorpus(filename,idf=True)
         filename=filename.split(".")[0]+'_tfidf.'+filename.split(".")[1]
+
+    if args.unitnorm:
+        print "Normalizing the corpus to unit norm vectors"
+        corpus=tfidf.tfidfCorpus(filename,idf=False)
+        filename=filename.split(".")[0]+'_unitnorm.'+filename.split(".")[1]
 
     if args.npy:
         print "Saving corpus as a numpy array"
-        Mykmeans.npmatrixCorpus(filename,features)
+        Mykmeans.npmatrixCorpus(filename)
 
     if args.bin:
         print "Saving corpus as a binary file"
