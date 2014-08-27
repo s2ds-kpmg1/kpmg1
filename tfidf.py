@@ -5,8 +5,11 @@
 from gensim import corpora, models
 import time
 import argparse
+import numpy as np
+import math
 
-def tfidfCorpus(corpusname):
+
+def tfidfCorpus(corpusname,idf=True):
 
     start_time = time.time()
 
@@ -15,12 +18,17 @@ def tfidfCorpus(corpusname):
 
     # Define a model (which is the gensim name for a transformation) based on this corpus which performs
     #  the TFIDF transformation/calculation
-    tfidf = models.TfidfModel(corpus)
 
-    # Apply it to the input corpus
+    if idf == True:
+        tfidf = models.TfidfModel(corpus, normalize=True)
+        outname=corpusname.split(".")[0]+'_tfidf.'+corpusname.split(".")[1]
+    else:
+        tfidf = models.TfidfModel(corpus,wglobal=lambda doc_freq, total_docs: 1.0 ,normalize=True)
+        outname=corpusname.split(".")[0]+'_unitnorm.'+corpusname.split(".")[1]
+
+  # Apply it to the input corpus
     new_corpus = tfidf[corpus]
 
-    outname=corpusname.split(".")[0]+'_tfidf.'+corpusname.split(".")[1]
     # Save the new corpus
     corpora.mmcorpus.MmCorpus.serialize(outname, new_corpus)
 
@@ -44,8 +52,10 @@ def main():
     args = parser.parse_args()
     corpusname=args.file
 
-    return  tfidfCorpus(corpusname)
+    return  tfidfCorpus(corpusname,idf=True)
 
 
 if __name__ == '__main__':
     main()
+
+
