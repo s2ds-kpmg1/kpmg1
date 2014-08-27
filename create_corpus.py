@@ -36,7 +36,6 @@ class MyCorpus(object):
         finally:
             self.connection.close()
 
-
 parser = argparse.ArgumentParser(description="Generating a corpus")
 parser.add_argument("--read", help="Name of the corpus file"
                     , default=None, required=False, type=str)
