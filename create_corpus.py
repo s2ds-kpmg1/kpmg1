@@ -38,6 +38,8 @@ class MyCorpus(object):
 
 
 parser = argparse.ArgumentParser(description="Generating a corpus")
+parser.add_argument("--read", help="Name of the corpus file"
+                    , default=None, required=False, type=str)
 parser.add_argument("--stopwords", help="Add stopwords",default=False, action='store_true')
 parser.add_argument("--minfreq", help="Don't consider words whose frequency in the dictionary is less than or equal to minfreq",
                     default=0,required = False, type=int)
@@ -68,18 +70,21 @@ def main():
 
     t0=time()
 
-    print "Customizing dictionary..."
-    dictionaryname="new_dic_"+filename.split(".")[0]
-
-    dic.customizeDic(dictionaryname,min,max,stopwords=stopws)
-
-    dictionaryname=dictionaryname+"_freq.txt"
-
-    print "Creating corpus..."
-
-    dict=corpora.Dictionary.load_from_text(dictionaryname)
-    # Create corpus
-    corpus=MyCorpus(dictionaryname,size=Nemails)
+    if args.read != None:
+        filename=args.read
+        dictionaryname="new_dic_"+filename.split(".")[0]
+        print "Reading {0}".format(filename)
+        corpus = corpora.MmCorpus(filename)
+        filename=filename
+    else:
+        print "Customizing dictionary..."
+        dictionaryname="new_dic_"+filename.split(".")[0]
+        dic.customizeDic(dictionaryname,min,max,stopwords=stopws)
+        dictionaryname=dictionaryname+"_freq.txt"
+        print "Creating corpus..."
+        dict=corpora.Dictionary.load_from_text(dictionaryname)
+        # Create corpus
+        corpus=MyCorpus(dictionaryname,size=Nemails)
 
     # Save corpus to a mm file
     corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
