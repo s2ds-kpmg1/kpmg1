@@ -39,9 +39,9 @@ class MyCorpus(object):
 
 parser = argparse.ArgumentParser(description="Generating a corpus")
 parser.add_argument("--stopwords", help="Add stopwords",default=False, action='store_true')
-parser.add_argument("--minfreq", help="Don't consider words whose frequency in the dictionary is below minfreq",
+parser.add_argument("--minfreq", help="Don't consider words whose frequency in the dictionary is less than or equal to minfreq",
                     default=0,required = False, type=int)
-parser.add_argument('--maxfreq', help = "Don't consider words whose frequency in the dictionary is over maxfreq",
+parser.add_argument('--maxfreq', help = "Don't consider words whose frequency in the dictionary is greater than or equal to maxfreq",
                     default=300000,required = False, type=int)
 parser.add_argument("--all", help="Create corpus using the whole set of emails",default=False, action='store_true')
 parser.add_argument('--emails', help = 'Number of emails used to build the corpus',
