@@ -62,7 +62,7 @@ def main():
     Nemails=args.emails
     stopws=args.stopwords
 
-    if args.all:
+    if args.all or Nemails==None:
         filename="corpus_min{0}_stopwds{1}_all.mm".format(min,stopws)
     else:
         filename="corpus_min{0}_stopwds{1}_{2}emails.mm".format(min,stopws,Nemails)
@@ -84,10 +84,10 @@ def main():
         dict=corpora.Dictionary.load_from_text(dictionaryname)
         # Create corpus
         corpus=MyCorpus(dictionaryname,size=Nemails)
+        # Save corpus to a mm file
+        corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
+        print "Corpus created in {0} secs".format(time()-t0)
 
-    # Save corpus to a mm file
-    corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
-    print "Corpus created in {0} secs".format(time()-t0)
 
     if args.tfidf:
         print "Applying tf-idf to the corpus"
