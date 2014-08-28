@@ -75,21 +75,31 @@ def main():
 
     #apply to corpus again
 
-    outdoc = 'lda_document_labels.{0}.txt'.format(args.corpus)
-    outfile = open(outdoc, 'w')
+    outlabel_name = 'lda_document_labels.{0}.txt'.format(args.corpus)
+    outlabel = open(outlabel_name, 'w')
+
+    outtopic_name = 'lda_topic_vectors.{0}.txt'.format(args.corpus)
+    outtopic = open(outtopic_name, 'w')
 
     for idx,doc in enumerate(mm):
-
-        tops = lda[doc]
-        proportion = [x[1] for x in tops]
-        most_important = proportion.index(max(proportion))
-        print 'Document {0}: Topic {1}'.format(idx, most_important)
-        outfile.write('{0}\n'.format(most_important))
-
-    outfile.close()
-
-
     
+        tops = lda[doc]
+        doc_tops=[]
+        for j in range(topics):
+            search = [v[1] for v in tops if v[0] == j]
+
+            if len(search)>0:
+                doc_tops.append(search[0])
+            else:
+                doc_tops.append(0.)
+
+        most_important = doc_tops.index(max(doc_tops))
+        outlabel.write('{0}\n'.format(most_important))
+        outtopic.write('\t'.join([str(d) for d in doc_tops])+'\n')
+
+    outlabel.close()
+    outtopic.close()
+
 
     
 if __name__ == "__main__":
