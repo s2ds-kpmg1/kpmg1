@@ -88,6 +88,7 @@ def main():
         corpora.mmcorpus.MmCorpus.serialize(filename, corpus)
         print "Corpus created in {0} secs".format(time()-t0)
 
+
     if args.tfidf:
         print "Applying tf-idf to the corpus"
         corpus=tfidf.tfidfCorpus(filename,idf=True)
