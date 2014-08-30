@@ -51,6 +51,8 @@ parser.add_argument("--tfidf", help="Apply tf-idf to the corpus",default=False, 
 parser.add_argument("--unitnorm", help="Normalizing the corpus to unit norm vectors",default=False, action='store_true')
 parser.add_argument("--npy", help="Save corpus as a numpy array to be read by sci-kit learn",
                     default=False, action='store_true')
+parser.add_argument("--csc", help="Save corpus as a sparse csc matrix to be read by sci-kit learn",
+                    default=False, action='store_true')
 parser.add_argument("--bin", help="Save corpus as a binary file to be read by anybody",
                     default=False, action='store_true')
 
@@ -72,9 +74,6 @@ def main():
     if args.read != None:
         filename=args.read
         dictionaryname="new_dic_"+filename.split(".")[0]
-        print "Reading {0}".format(filename)
-        corpus = corpora.MmCorpus(filename)
-        filename=filename
     else:
         print "Customizing dictionary..."
         dictionaryname="new_dic_"+filename.split(".")[0]
@@ -103,6 +102,10 @@ def main():
         print "Saving corpus as a numpy array"
         Mykmeans.npmatrixCorpus(filename)
 
+    if args.csc:
+        print "Saving corpus as a sparse csc matrix"
+        Mykmeans.cscmatrixCorpus(filename)
+
     if args.bin:
         print "Saving corpus as a binary file"
         filename=filename.split(".")[0]+".npy"
@@ -113,7 +116,7 @@ def main():
     print "Dictionary used to create the corpus: {0}".format(dictionaryname)
     print 'Total time to create corpus: {0} sec'.format(t1)
 
-    return corpus
+    return
 
 if __name__ == '__main__':
     main()

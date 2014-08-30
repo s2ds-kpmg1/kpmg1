@@ -17,8 +17,9 @@ from gensim import corpora, matutils
 parser = argparse.ArgumentParser(description='K-fold Testing using Naive Bayes on a model')
 parser.add_argument('-c', '--corpus', help = 'The corpus file in MM format. It will be translated into a sparse scipy matrix.', required = True, type = str)
 parser.add_argument('-l', '--labels', help = 'A file containing a list of labels for each document in the corpus', required = True, type = str)
-parser.add_argument('-k', '--kfold', help='Number of kfolds', default = 10, type=int)
 parser.add_argument('-t', '--topics', help='Number of topics in model', required = True, type=int)
+parser.add_argument('-k', '--kfold', help='Number of kfolds', default = 10, type=int)
+parser.add_argument('-s', '--stratified', help = 'Use stratified kfolds', default = False, action='store_true')
 
 def main():
 
@@ -28,10 +29,16 @@ def main():
 
     corpus_file = args.corpus
 
+    print 'Reading in corpus: {0}'.format(corpus_file)
+
     new_corpus = corpora.mmcorpus.MmCorpus(corpus_file)
+
+    print 'Converting corpus to sparse matrix'
+
     X = matutils.corpus2csc(new_corpus, new_corpus.num_terms, num_docs=new_corpus.num_docs)
         
     X = X.transpose()
+
 
     clf2 = MultinomialNB()
    # clf.fit(X,y)
@@ -43,8 +50,16 @@ def main():
 
     #ybin = label_binarize(y, classes=classes)
 
-    kf = cross_validation.KFold(n_elements, n_folds=nfolds)
-    #kf = cross_validation.StratifiedKFold(y, n_folds=nfolds)
+    print 'Creating k-folds'
+
+    #
+    if args.stratified == True:
+
+        kf = cross_validation.StratifiedKFold(y, n_folds=nfolds)
+
+    else: 
+
+        kf = cross_validation.KFold(n_elements, n_folds=nfolds, shuffle = True)
 
     score = np.zeros(nfolds)
 
@@ -56,7 +71,7 @@ def main():
 
     for idx, (train, test) in enumerate(kf):
 
-        print 'Running k-fold {0}'.format(idx+1)
+        print 'Running k-fold {0}'.format(idx)
 
         xtrain, ytrain = X[train], y[train]
         xtest, ytest = X[test], y[test]
@@ -69,28 +84,28 @@ def main():
     #fpr[i], tpr[i], _ = roc_curve(y_test[:, i], y_score[:, i])
     #roc_auc[i] = auc(fpr[i], tpr[i])
 
-       
+        print 'Looping over labels'
+
+
         for cls in classes:
 
-            fpr_list[idx][cls], tpr_list[idx][cls], threshold = roc_curve(ytest[ytest==cls], y_score[ytest==cls], pos_label=cls)
+            fpr_list[idx][cls], tpr_list[idx][cls], threshold = roc_curve(ytest, y_score, pos_label=cls)
             
             roc_list[idx][cls] = auc(fpr_list[idx][cls], tpr_list[idx][cls])
             
 
         #do micro averaging over all classes
 
-        fpr_list[idx]["micro"], tpr_list[idx]["micro"], _ = roc_curve(ytest.ravel(), y_score.ravel())
-        roc_list[idx]["micro"] = auc(fpr_list[idx]["micro"], tpr_list[idx]["micro"])
+        #fpr_list[idx]["micro"], tpr_list[idx]["micro"], _ = roc_curve(ytest.ravel(), y_score.ravel())
+        #roc_list[idx]["micro"] = auc(fpr_list[idx]["micro"], tpr_list[idx]["micro"])
 
 
         #make ROC curve for each class in this fold
 
         # Plot ROC curve
         plt.figure(idx)
-        plt.plot(fpr_list[idx]["micro"], tpr_list[idx]["micro"],
-                 label='micro-average ROC curve (area = {0:0.2f})'
-                       ''.format(roc_list[idx]["micro"]))
-        for cls in classes:
+        
+        for cls in [01,2,3,4,5,6,7,8,9]:
             plt.plot(fpr_list[idx][cls], tpr_list[idx][cls], label='ROC curve of class {0} (area = {1:0.2f})'
                                            ''.format(cls, roc_list[idx][cls]))
 
