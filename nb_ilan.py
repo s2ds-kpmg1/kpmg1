@@ -32,9 +32,9 @@ def pofTgivenD(doc,topics):
     for i in doc:
         #print doc
         for j in topics:
-            if i == j[1]:
+            if i == j:
                 matchcount+=1
-                #print "Match found for word {0} in topic {1}".format(i,j[0])
+                #print "Topic word '{0}' found in this document:\n{1}\n".format(j,doc)
         tokencount+=1
     proboftopicgivendoc = float(matchcount)/float(tokencount)
     return proboftopicgivendoc
@@ -44,8 +44,8 @@ def pofTgivenD(doc,topics):
 
 def main():
 
-    #topics=importTopics('corpus_min1_stopwdsTrue_all_tfidf_lsi_topics.txt')
-    topics=importTopics('test_corpus_lsi_topics.pkl')
+    topics=importTopics('corpus_min1_stopwdsTrue_all_tfidf_lsi_topics.pkl')
+    #topics=importTopics('test_corpus_lsi_topics.pkl')
     #print topics[0][0]
 
     con, cur=enron.connectDB("enron")
@@ -68,12 +68,12 @@ def main():
         topicprob=pofTgivenD(text_stem,topics)     
         tot+=topicprob
         if topicprob>1.: print "ERROR: PROBABILITY LARGER THAN 1",id, topicprob
-        if id % 1000 == 0: print "Reading {0}, probsum: {1}".format(id,tot)
+        if id % 1000 == 0: print "Email {0} processed, probability sum: {1}".format(id,tot)
         #print "Probability of generating email {0} from this topic set: {1}".format(id,topicprob)
     con.close()
 
 
-    print "Sum of probabilities:",tot
+    print "Final sum of probabilities:",tot
 
 
 
