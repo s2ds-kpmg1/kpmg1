@@ -20,7 +20,8 @@ def stemmingListofStrings(textsid, stopwords=False):
     ids = [id for id, text in textsid]
 
     # Initialize the stemmer snowball
-    stem = nltk.stem.snowball.EnglishStemmer()
+    #stem = nltk.stem.snowball.EnglishStemmer()
+    stem = nltk.stem.WordNetLemmatizer()
 
     # Clean the text eliminating symbols and numbers
     texts = [text.translate(None, digits) for text in texts]
@@ -48,7 +49,8 @@ def stemmingListofStrings(textsid, stopwords=False):
         texts_token = [[x for x in text_token if len(x) > 1] for text_token in texts_token]
 
     # Apply stemming
-    texts_stem = [[stem.stem(word) for word in text_token] for text_token in texts_token]
+    #texts_stem = [[stem.stem(word) for word in text_token] for text_token in texts_token]
+    texts_stem = [[stem.lemmatize(word) for word in text_token] for text_token in texts_token]
 
     textsid = zip(ids, texts_stem)
 
@@ -64,7 +66,8 @@ def stemmingString(text, id, stopwords=False):
     """
 
     # Initialize the stemmer snowball
-    stem = nltk.stem.snowball.EnglishStemmer()
+    #stem = nltk.stem.snowball.EnglishStemmer()
+    stem = nltk.stem.WordNetLemmatizer()
 
     # Clean the text eliminating symbols and numbers
     text = text.translate(None, digits)
@@ -87,6 +90,7 @@ def stemmingString(text, id, stopwords=False):
         text_token = [x for x in text_token if len(x) > 1]
 
     # Apply stemming
-    text_stem = [stem.stem(word) for word in text_token]
+    #text_stem = [stem.stem(word) for word in text_token]
+    text_stem = [stem.lemmatize(word) for word in text_token]
 
     return text_stem

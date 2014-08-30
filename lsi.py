@@ -7,6 +7,8 @@ from gensim import corpora
 import pprint as pp
 #import logging
 from operator import itemgetter
+import cPickle as pickle
+
 
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.DEBUG)
@@ -15,7 +17,7 @@ parser = argparse.ArgumentParser(description='Performs Latent Semantic Analysis 
 parser.add_argument("--corpus","-c",help="Input name of corpus file (MM file type)",default=None, required=True, type=str)
 parser.add_argument("--dict","-d",help="Input name of dictionary file",default=None, required=True, type=str)
 parser.add_argument("--ntopics","-nt",help="Input desired number of topics",default=10, required=True, type=int)
-parser.add_argument("--query","-q",help="Input document for similarity query against topics found",default=None, required=False, type=int)
+parser.add_argument("--query","-q",help="Input document for similarity query against topics found",default=None, required=True, type=int)
 parser.add_argument("--nwords","-nw",help="Input desired number of words to show per topic",default=10, required=False, type=int)
 
 
@@ -73,12 +75,16 @@ os.chdir(folderpath)
 
 lsimodelfile=(str(args.corpus).replace('.mm',''))+'_lsi.model'
 lsi.save(lsimodelfile)
-filename1= (str(args.corpus).replace('.mm',''))+'_lsi_topics.txt'
+#filename1= (str(args.corpus).replace('.mm',''))+'_lsi_topics.txt'
+filename1= (str(args.corpus).replace('.mm',''))+'_lsi_topics.pkl'
 filename2= (str(args.corpus).replace('.mm',''))+('_item_{0}_classification.txt'.format(args.query))
-f = open(filename1,'w')
-f.seek(0)
-f.write(str(corpustopics))
-f.close()
+
+with open(filename1,'wb') as output:
+    pickle.dump(corpustopics, output)
+# f = open(filename1,'w')
+# f.seek(0)
+# f.write(str(corpustopics))
+# f.close()
 f = open(filename2,'w')
 f.seek(0)
 f.write(str(queryresult))

@@ -58,16 +58,22 @@ def main():
     #pofD=1./float(size)
     #pofT=1./10.
 
+    tot=0
     for id in range(1,size):
         cur.execute(" select text from emails where id = {0} ".format(id))
         tmp = cur.fetchall()
-        text_stem = stem.stemmingString(tmp[0][0], id, stopwords=True)
+        text = enron.cleanString(enron.stripCharacters(tmp[0][0]))
+        text_stem = stem.stemmingString(text, id, stopwords=True)
         #topicprob=pofTgivenD(text_stem,topics)*pofD/pofT 
         topicprob=pofTgivenD(text_stem,topics)     
-        if topicprob>=1.: print "ERROR: PROBABILITY LARGER THAN 1"
-        print "Probability of generating email {0} from this topic set: {1}".format(id,topicprob)
+        tot+=topicprob
+        if topicprob>1.: print "ERROR: PROBABILITY LARGER THAN 1",id, topicprob
+        if id % 1000 == 0: print "Reading {0}, probsum: {1}".format(id,tot)
+        #print "Probability of generating email {0} from this topic set: {1}".format(id,topicprob)
     con.close()
 
+
+    print "Sum of probabilities:",tot
 
 
 
