@@ -16,7 +16,14 @@ def importTopics(filename):
             topics.append([topicnumber, str(j[1])])
         topicnumber+=1
     #print topics
-    return topics
+    # The following removes word overlap between topics and leaves only unique words from all the topics. If this is not desired just return 'topics' instead
+    found = set()
+    for item in topics:
+        if item[1] not in found:
+            found.add(item[1])
+    uniquetopics=list(found)
+    #print uniquetopics
+    return uniquetopics
 
 
 def pofTgivenD(doc,topics):
@@ -56,7 +63,8 @@ def main():
         tmp = cur.fetchall()
         text_stem = stem.stemmingString(tmp[0][0], id, stopwords=True)
         #topicprob=pofTgivenD(text_stem,topics)*pofD/pofT 
-        topicprob=pofTgivenD(text_stem,topics)           
+        topicprob=pofTgivenD(text_stem,topics)     
+        if topicprob>=1.: print "ERROR: PROBABILITY LARGER THAN 1"
         print "Probability of generating email {0} from this topic set: {1}".format(id,topicprob)
     con.close()
 
