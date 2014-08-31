@@ -66,19 +66,19 @@ def main():
     print 'Running topic {0}'.format(topics)
 
     #This is the pure gensim version. It uses variational Bayes
-    lda = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=topics, eval_every=20, chunksize=10000, passes=5)
+    lda = gensim.models.ldamodel.LdaModel(corpus=mm, id2word=id2word, num_topics=topics, eval_every=20, chunksize=10000, passes=5, alpha='auto')
 
     if (args.savemodel==True):
 
-        lda.save('model_{0}.lda'.format(args.corpus))
+        lda.save('model_{0}_auto.lda'.format(args.corpus))
 
 
     #apply to corpus again
 
-    outlabel_name = 'lda_document_labels.{0}.txt'.format(args.corpus)
+    outlabel_name = 'lda_document_labels.{0}_auto.txt'.format(args.corpus)
     outlabel = open(outlabel_name, 'w')
 
-    outtopic_name = 'lda_topic_vectors.{0}.txt'.format(args.corpus)
+    outtopic_name = 'lda_topic_vectors.{0}_auto.txt'.format(args.corpus)
     outtopic = open(outtopic_name, 'w')
 
     for idx,doc in enumerate(mm):
