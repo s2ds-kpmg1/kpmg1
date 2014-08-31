@@ -17,15 +17,39 @@ from gensim import corpora, matutils
 parser = argparse.ArgumentParser(description='K-fold Testing using Naive Bayes on a model')
 parser.add_argument('-c', '--corpus', help = 'The corpus file in MM format. It will be translated into a sparse scipy matrix.', required = True, type = str)
 parser.add_argument('-l', '--labels', help = 'A file containing a list of labels for each document in the corpus', required = True, type = str)
-parser.add_argument('-t', '--topics', help='Number of topics in model', required = True, type=int)
 parser.add_argument('-k', '--kfold', help='Number of kfolds', default = 10, type=int)
+parser.add_argument('-t', '--topics', help='Number of topics in model. Will do all and plot first 10', type=int)
+parser.add_argument('-b', '--best_topics', nargs='+', help = 'Which labels do you want to keep?', type = int)
 parser.add_argument('-s', '--stratified', help = 'Use stratified kfolds', default = False, action='store_true')
 
 def main():
 
     args = parser.parse_args()
 
-    y = np.genfromtxt(args.labels, unpack = True, dtype=None)
+    y = np.genfromtxt(args.labels, unpack = True, dtype=int)
+
+    ynew = []
+    if (args.topics > 0):
+        classes = [x for x in range(args.topics)]
+        pclasses = [x for x in range(10)]
+        ynew = y
+
+
+    if len(args.best_topics)>0:
+        classes = args.best_topics
+        pclasses = classes
+
+        for yy in y:
+
+            if yy not in args.best_topics:
+
+                yy = args.best_topics[np.random.randint(0,10)]
+
+            ynew.append(yy)
+
+    ynew = np.array(ynew)
+
+
 
     corpus_file = args.corpus
 
@@ -40,13 +64,18 @@ def main():
     X = X.transpose()
 
 
+    #interesting topics
+
+   # topics = [54, 71, 21, 18, 57, 47, 49,  3,  2, 24]
+
+
     clf2 = MultinomialNB()
    # clf.fit(X,y)
 
-    n_elements = len(y)
+    n_elements = len(ynew)
     nfolds = args.kfold
 
-    classes = [x for x in range(args.topics)]
+    #[x for x in range(args.topics)]
 
     #ybin = label_binarize(y, classes=classes)
 
@@ -67,14 +96,14 @@ def main():
     fpr_list = [{} for i in xrange(nfolds)]
     roc_list = [{} for i in xrange(nfolds)]
 
-    classes = [x for x in xrange(args.topics)]
+
 
     for idx, (train, test) in enumerate(kf):
 
         print 'Running k-fold {0}'.format(idx)
 
-        xtrain, ytrain = X[train], y[train]
-        xtest, ytest = X[test], y[test]
+        xtrain, ytrain = X[train], ynew[train]
+        xtest, ytest = X[test], ynew[test]
         
         clf2.fit(xtrain, ytrain)
         score[idx] = clf2.score(xtest,ytest)
@@ -105,7 +134,7 @@ def main():
         # Plot ROC curve
         plt.figure(idx)
         
-        for cls in [01,2,3,4,5,6,7,8,9]:
+        for cls in pclasses:
             plt.plot(fpr_list[idx][cls], tpr_list[idx][cls], label='ROC curve of class {0} (area = {1:0.2f})'
                                            ''.format(cls, roc_list[idx][cls]))
 
