@@ -48,8 +48,8 @@ def pofTgivenD(doc,topics):
 
 def main():
 
-    #topics=importTopics('corpus_min1_stopwdsTrue_all_tfidf_lsi_topics.txt')
-    topics=importTopics('lda.topic.pkl')
+    topics=importTopics('corpus_min1_stopwdsTrue_all_tfidf_lsi_topics.pkl')
+    #topics=importTopics('test_corpus_lsi_topics.pkl')
     #print topics[0][0]
 
     con, cur=enron.connectDB("enron")
@@ -72,13 +72,12 @@ def main():
         topicprob=pofTgivenD(text_stem,topics)     
         tot+=topicprob
         if topicprob>1.: print "ERROR: PROBABILITY LARGER THAN 1",id, topicprob
-        if id % 1000 == 0: print "Reading {0}, probsum: {1}".format(id,tot)
+        if id % 1000 == 0: print "Email {0} processed, probability sum: {1}".format(id,tot)
         #print "Probability of generating email {0} from this topic set: {1}".format(id,topicprob)
     con.close()
 
 
-    print "Sum of probabilities:",tot
-    #Sum of probabilities: 91543.4382588
+    print "Final sum of probabilities:",tot
 
 
 
