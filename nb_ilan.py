@@ -27,16 +27,20 @@ def importTopics(filename):
 
 
 def pofTgivenD(doc,topics):
-    tokencount=1
+    tokencount=0
     matchcount=0
     for i in doc:
         #print doc
+        tokencount+=1
         for j in topics:
-            if i == j[1]:
+            if (i == j):
                 matchcount+=1
                 #print "Match found for word {0} in topic {1}".format(i,j[0])
-        tokencount+=1
-    proboftopicgivendoc = float(matchcount)/float(tokencount)
+    #print matchcount, tokencount
+    try:
+        proboftopicgivendoc = float(matchcount)/float(tokencount)
+    except ZeroDivisionError:
+        proboftopicgivendoc = 0.0
     return proboftopicgivendoc
 
 
@@ -45,7 +49,7 @@ def pofTgivenD(doc,topics):
 def main():
 
     #topics=importTopics('corpus_min1_stopwdsTrue_all_tfidf_lsi_topics.txt')
-    topics=importTopics('test_corpus_lsi_topics.pkl')
+    topics=importTopics('lda.topic.pkl')
     #print topics[0][0]
 
     con, cur=enron.connectDB("enron")
@@ -74,6 +78,7 @@ def main():
 
 
     print "Sum of probabilities:",tot
+    #Sum of probabilities: 91543.4382588
 
 
 
