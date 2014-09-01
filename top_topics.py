@@ -4,6 +4,7 @@ import numpy as np
 import argparse
 from distutils.version import StrictVersion
 import sys
+import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser(description='Get the top n topics. Plot histogram of all topics. NB requires Numpy 1.8+')
 parser.add_argument('-f', '--filename', help = 'Filename containing the probability vectors for each document', required = True, type=str)
@@ -42,20 +43,16 @@ def main():
     print 'with scores'
     print score[ind]
 
+    if args.plot == True:
 
+        fig, ax = plt.subplots()
+        ax.bar([x for x in range(topics)], score, color='b')
+        ax.set_ylabel('Score')
+        ax.set_title('A measure of relative importance of each topic within the corpus')
+        ax.set_xlabel('Topic number')
+        ax.set_xticklabels(tuple([str(x*10) for x in range(topics/10)]))
+        plt.show()
 
-#Auto data sample:
-#[54 71 21 18 57 47 49  3  2 24]
-
-#Old output - alpha = 0.1
-#In [7]: ind
-#Out[7]: array([39, 62, 60, 49, 37, 31, 26, 13,  9,  0])
-
-#In [8]: score[ind]
-#Out[8]:
-#array([  6054.25213735,  23005.53803987,   6188.53675998,  10624.11923656,
-#         8552.07141789,   8780.46728334,  11576.84519712,  12077.38138667,
-#         8206.77927727,  11312.8841365 ])
 
 if __name__ == "__main__":
     main()
