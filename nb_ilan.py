@@ -27,16 +27,20 @@ def importTopics(filename):
 
 
 def pofTgivenD(doc,topics):
-    tokencount=1
+    tokencount=0
     matchcount=0
     for i in doc:
         #print doc
-        for j in topics:
-            if i == j:
-                matchcount+=1
-                #print "Topic word '{0}' found in this document:\n{1}\n".format(j,doc)
         tokencount+=1
-    proboftopicgivendoc = float(matchcount)/float(tokencount)
+        for j in topics:
+            if (i == j):
+                matchcount+=1
+                #print "Match found for word {0} in topic {1}".format(i,j[0])
+    #print matchcount, tokencount
+    try:
+        proboftopicgivendoc = float(matchcount)/float(tokencount)
+    except ZeroDivisionError:
+        proboftopicgivendoc = 0.0
     return proboftopicgivendoc
 
 
