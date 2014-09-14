@@ -8,6 +8,7 @@ import pprint as pp
 #import logging
 from operator import itemgetter
 import cPickle as pickle
+import shutil
 
 
 #logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
@@ -77,9 +78,13 @@ def main():
         topicspath=os.path.join(folderpath,topicsfile)
         lsi = LsiModel.load(modelpath)
         topics=pickle.load(open(topicspath,'r'))
+        f = open('lsi_corpus_topics.txt','w')
+        f.seek(0)
+        f.write(str(topics))
+        f.close()
         os.chdir(rootdir)
         
-    pp.pprint(lsi.show_topics(num_words=10, log=False, formatted=True))
+    pp.pprint(lsi.show_topics(num_topics=args.ntopics, num_words=10, log=False, formatted=True))
 
     corpus = corpora.MmCorpus(args.corpus)
 
@@ -93,29 +98,38 @@ def main():
     # Generate topic probability-document matrix, along with vector containing most probable topic (assumed to be the label) for each document
     #os.chdir(folderpath)
     outlabel_name = 'lsi_document_labels_{0}.txt'.format((args.corpus).replace('.mm',''))
-    outlabel = open(outlabel_name, 'w')
 
     outtopic_name = 'lsi_topic_vectors_{0}.txt'.format((args.corpus).replace('.mm',''))
-    outtopic = open(outtopic_name, 'w')
 
-    for idx,doc in enumerate(corpus):
+    outlabelpath=os.path.join(folderpath,outlabel_name)
+    outtopicpath=os.path.join(folderpath,outtopic_name)
+    if (os.path.exists(outlabelpath)==False or os.path.exists(outtopicpath)==False):
+
+        outtopic = open(outtopic_name, 'w')
+        outlabel = open(outlabel_name, 'w')
+
+        for idx,doc in enumerate(corpus):
     
-        tops = lsi[doc]
-        doc_tops=[]
-        for j in range(args.ntopics):
-            search = [v[1] for v in tops if v[0] == j]
+            tops = lsi[doc]
+            doc_tops=[]
+            for j in range(args.ntopics):
+                search = [v[1] for v in tops if v[0] == j]
 
-            if len(search)>0:
-                doc_tops.append(search[0])
-            else:
-                doc_tops.append(0.)
+                if len(search)>0:
+                    doc_tops.append(search[0])
+                else:
+                    doc_tops.append(0.)
 
-        most_important = doc_tops.index(max(doc_tops))
-        outlabel.write('{0}\n'.format(most_important))
-        outtopic.write('\t'.join([str(d) for d in doc_tops])+'\n')
+            most_important = doc_tops.index(max(doc_tops))
+            outlabel.write('{0}\n'.format(most_important))
+            outtopic.write('\t'.join([str(d) for d in doc_tops])+'\n')
 
-    outlabel.close()
-    outtopic.close()
+        outlabel.close()
+        outtopic.close()
+
+    shutil.move(outlabel_name,folderpath)
+    shutil.move(outtopic_name,folderpath)
+
 
     #os.chdir(rootdir)
  
